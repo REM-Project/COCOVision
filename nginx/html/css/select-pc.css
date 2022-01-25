@@ -1,0 +1,55 @@
+body {
+	width: 1920px;
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	background-color: #FFDEAD;
+}
+#realtime{
+	font-size: 5vmin;
+	background-color: #F5FFFA;
+	border: 3px solid;
+	position: relative;
+	top: 30px;
+	margin: 5px;
+}
+#headName{
+	font-size: 6vmin;
+	position: relative;
+	top: 55px;
+}
+#selecttxt{
+	font-size: 40px;
+	position: relative;
+	top: 50px;
+	margin-bottom: 30px;
+}
+#displaybtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 30px;
+	width: 300px;
+}
+#backbtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 70px;
+	width: 25%
+}
+#csvbtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 30px;
+	width: 15%;
+}
+#datepicker1{
+	font-size: 25px;
+}
+#datepicker2{
+	font-size: 25px;
+}
+h2{
+	font-size: 30px;
+	position:relative;
+	top: 15px;
+}

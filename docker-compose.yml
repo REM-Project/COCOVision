@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  openpose:
+    build:
+      context: .
+      dockerfile: ./openpose/Dockerfile
+    # devices:
+    #   - "/dev/video0:/dev/video0"
+    #   - "/dev/video1:/dev/video1"
+    #   - "/dev/video2:/dev/video2"
+    stdin_open: true
+
+  php:
+    build: ./php/
+    volumes:
+      - ./nginx/html:/var/www/html #webページ読み込み
+      #- ./php/php.ini:/usr/local/etc/php/conf.d/php.ini #設定ファイル読み込み
+    depends_on:
+      - "mysql"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/html:/var/www/html #webページ読み込み
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf #設定ファイル読み込み
+    restart: always
+    ports: #ホスト側ポート：インスタンス側ポート
+      - 80:80
+    depends_on:
+      - "php"
+
+  mysql:
+    build:
+      context: ./mysql/
+      dockerfile: ./Dockerfile
+    ports:
+      - 3306:3306
+    volumes:
+      #ディレクトリリンク
+      #- ./mysql/db:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    environment:
+      - "TZ=Asia/Tokyo"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=th1117
+    links:
+      - mysql
+    ports:
+      - 8080:80
+    volumes:
+      - /sessions
+volumes:
+  mysql_data:
+

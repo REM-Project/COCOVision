@@ -1,0 +1,38 @@
+body {
+	width: 1920px;
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	background-color: #FFDEAD;
+}
+#realtime{
+	font-size: 5vmin;
+	background-color: #F5FFFA;
+	border: 3px solid;
+	position: relative;
+	top: 30px;
+	margin: 5px;
+}
+#backbtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 70px;
+	width: 25%
+}
+
+.box {
+  margin       : auto;
+  width        : 60vmin;
+  height       : 70vmin;
+  background   : #FFFFFF;
+  border-style : solid;
+  border-width : 10px;
+  border-color : #009D5B;
+  position : relative;
+  top : 50px;
+  z-index: 1;
+}
+
+#sensorValue{
+	font-size: 5.5vmin;
+}

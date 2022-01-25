@@ -1,0 +1,128 @@
+body {
+	width: 1920px;
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	background-color: #FFDEAD;
+}
+#realtime{
+	font-size: 5vmin;
+	background-color: #F5FFFA;
+	border: 3px solid;
+	position: relative;
+	top: 30px;
+	margin: 5px;
+}
+#backbtn{
+	font-size: 4vmin;
+	position: relative;
+	top: 70px;
+	padding-left : 20px;
+	padding-right: 20px;
+	margin-left : 20px;
+}
+#homebtn{
+	font-size: 4vmin;
+	position: relative;
+	top: 70px;
+}
+
+.line{
+	display: flex;
+	justify-content: center;
+}
+
+td {
+	border: 2px solid;
+}
+table {
+	margin-left: auto;
+	margin-right: auto;
+	position:relative;
+}
+
+#titletext{
+	position:relative;
+	/*font-size: 6vmin;*/
+	font-size: 80px;
+	top: 40px;
+}
+
+#chart-area{
+	position:relative;
+	width	:80vmin;
+	height	:80vmin;
+	margin-left: auto;
+	margin-right: auto;
+	top 110px;
+}
+
+#csvbtn{
+	position:relative;
+	font-size: 3vmin;
+}
+
+canvas{
+	background-color: #FFDE99;
+}
+
+.tab-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  margin:20px 0;
+}
+.tab-wrap:after {
+  content: '';
+  width: 100%;
+  height: 3px;
+  background: DeepSkyBlue;
+  display: block;
+  order: -1;
+}
+.tab-label {
+  color: White;
+  background: LightGray;
+  font-weight: bold;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.2);
+  white-space: nowrap;
+  text-align: center;
+  padding: 10px .5em;
+  order: -1;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  flex: 1;
+}
+.tab-label:not(:last-of-type) {
+  margin-right: 5px;
+}
+.tab-content {
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+/* アクティブなタブ */
+.tab-switch:checked+.tab-label {
+  background: DeepSkyBlue;
+}
+.tab-switch:checked+.tab-label+.tab-content {
+  height: auto;
+  overflow: auto;
+  padding: 15px;
+  opacity: 1;
+  transition: .5s opacity;
+  box-shadow: 0 0 3px rgba(0,0,0,.2);
+}
+/* ラジオボタン非表示 */
+.tab-switch {
+  display: none;
+}
+input{
+	font-size:16px;
+}
+.transition{
+	font-size:16px;
+	font-weight: 999;
+}

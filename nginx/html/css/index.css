@@ -1,0 +1,44 @@
+body {
+	width: 1920px;
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	background-color: #FFDEAD;
+}
+#realtime{
+	font-size: 5vmin;
+	background-color: #F5FFFA;
+	border: 3px solid;
+	position: relative;
+	top: 30px;
+	margin: 5px;
+}
+#sysName{
+	font-size: 6vmin;
+	position: relative;
+	top: 60px;
+}
+#selecttxt{
+	font-size: 30px;
+	position: relative;
+	top: 80px;
+	margin-bottom: 30px;
+}
+#displaybtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 150px;
+	width: 25%
+}
+#historybtn{
+	font-size: 5vmin;
+	position: relative;
+	top: 220px;
+	width: 25%
+}
+#selectmenu{
+	border: 1px solid;
+	font-size: 7vmin;
+	position: relative;
+	top: 0px;
+}
