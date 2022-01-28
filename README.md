@@ -10,8 +10,13 @@ Dockerコンテナ内で作業したい場合は docker exec -it コンテナ名
 
 
 # 実行環境
+## OS・ドライバー
 * Windows10
 * NVIDIA Studio Driver 511.09（2022/01/18現在最新版）
+
+## ハードウェア
+* Intel Core i5-9600K
+* NVIDIA Geforce RTX 2070
 
 
 # 引継事項
