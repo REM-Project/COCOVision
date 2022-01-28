@@ -4,10 +4,9 @@ services:
     build:
       context: .
       dockerfile: ./openpose/Dockerfile
+    #カメラ読み込み
     # devices:
     #   - "/dev/video0:/dev/video0"
-    #   - "/dev/video1:/dev/video1"
-    #   - "/dev/video2:/dev/video2"
     volumes:
       #ディレクトリリンク
       - ./openpose/script:/usr/local/script/

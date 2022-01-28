@@ -1,10 +1,20 @@
+#元イメージ
 FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND noninteractive 
+#使うグラボ
 ENV NVIDIA_VISIBLE_DEVICES all
+#使う領域
 ENV NVIDIA_DRIVER_CAPABILITIES video,compute,utility
+
+#タイムゾーン
 ENV TZ=Asia/Tokyo
+
+#ubuntuが20.04より古い場合cmakeのバージョンが古くてミスる（もっとバージョン上げたほうがいいかも？）
 #ENV CMAKE_VER="3.16"
+
+#毎回OpenPoseをgit cloneするのも時間かかるのでは？理論に基づき事前ダウンロードしたものをコピーする作戦
+#今現在使ってない
 #COPY ./openpose/ /usr/local/openpose/
 
 # Install required Packages
@@ -31,8 +41,12 @@ RUN set -xe && \
             v4l2loopback-utils \
             iputils-ping \
             net-tools \
-            dnsutils && \
-    pip3 install pymysql
+            dnsutils \
+            python3 \
+            python3-distutils \
+            curl
+RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python3
+RUN pip install pymysql
 
 #v4ls setup
 #RUN echo "options v4l2loopback video_nr=0 exclusive_caps=1" | sudo tee -a /etc/modprobe.d/v4l2loopback.conf
@@ -61,6 +75,7 @@ RUN set -xe && \
     apt-get clean && \
     rm -rf /tmp/cmake.tar.gz
     
+#bash bin/openpose.binで動かすためだけのcp
 RUN cp /usr/local/openpose/build/examples/openpose/openpose.bin /usr/local/bin/
     #ln -s /usr/local/openpose/build/examples/openpose/openpose.bin /usr/local/bin/openpose.bin
     
