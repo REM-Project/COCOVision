@@ -27,13 +27,12 @@ RUN set -xe && \
             bash \
             apt-utils \
             curl \
-
             v4l2loopback-dkms \
             v4l2loopback-utils \
-
             iputils-ping \
             net-tools \
-            dnsutils
+            dnsutils && \
+    pip3 install pymysql
 
 #v4ls setup
 #RUN echo "options v4l2loopback video_nr=0 exclusive_caps=1" | sudo tee -a /etc/modprobe.d/v4l2loopback.conf
@@ -46,7 +45,6 @@ WORKDIR /usr/local
 RUN set -xe && \
     git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose
 
-RUN ls
 RUN cd /usr/local/openpose && \
     bash ./scripts/ubuntu/install_deps.sh
 

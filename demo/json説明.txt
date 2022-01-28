@@ -1,0 +1,2 @@
+person_idの数＝人数
+pose_keypoints_2d＝各関節の位置(x座標、y座標、信頼度)
