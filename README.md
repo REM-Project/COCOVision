@@ -1,7 +1,7 @@
 # COCOVision
 COCOVisionは室内の環境値を測定・警告し、新型コロナウイルス感染拡大を抑止することを目的としたシステムです。
 
-現在このリポジトリに含まれているコードはシステムの中のwebシステム部と混雑度測定に関する部分です。
+現在このリポジトリに含まれているコードはシステムの中のwebシステム部と混雑度測定に関する部分です。（開発途上の計測デバイス用コード含有。全コード追加・更新予定）
 
 # 実行
 ダウンロード・解凍した後、docker-compose.ymlと同一ディレクトリで docker compose up -d を実行します。
@@ -20,7 +20,7 @@ Dockerコンテナ内で作業したい場合は docker exec -it コンテナ名
 
 
 # 引継事項
-demo内は本来Windows版のOpenPoseが配置されていました。
+demo内は本来Windows版のOpenPoseを配置しています。
 
 Githubで管理する関係上省きましたが、プレゼン等でデモンストレーションを行う際に必要であれば[公式のリリース](https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases)から落としてください。
 
