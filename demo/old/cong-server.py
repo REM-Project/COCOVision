@@ -26,18 +26,19 @@ while True:
 		print(address[0] +':' + str(address[1]))
 
 		sendline = ''
-		dir='openpose/data/'#
+		dir='./data/'#
 
 		while True:
-			Path_number=int(sum(os.path.isfile(os.path.join(dir,name)) for name in os.listdir(dir)))-1
-			Path=dir+'{:0>12}_keypoints.json'
+			#Path_number=int(sum(os.path.isfile(os.path.join(dir,name)) for name in os.listdir(dir)))-1
+			Path=dir+'img_keypoints.json'
 			try:
-				json_open = open(Path.format(Path_number), 'r')
+				json_open = open(Path, 'r')
 				json_load = json.load(json_open)
 				peo=len(json_load['people'])
 				answer=str(peo)
 			except:
 				answer=str(-1)
+
 			sendline = answer.encode('utf-8')
 			print('検出人数：'+str(answer)+'人')
 			#print(Path.format(Path_number))

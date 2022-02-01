@@ -40,7 +40,7 @@ def main():
         #カメラ台数分ループ - 0 ~ n-1
         for num in range(numCameras[i]):
             #固定値
-            cmd=["ffmpeg","-re","-i","-f","image2","-update","1"]
+            cmd=["ffmpeg","-y","-re","-i","-f","image2","-update","1"]
 
             #使用ポート番号成形
             port=firstPort+num
@@ -49,13 +49,15 @@ def main():
             address=ip+":"+str(port)
 
             #ソース元指定
-            cmd.insert(3,"http://"+address)
+            cmd.insert(4,"http://"+address)
             
             #書き出し先フォルダパス成形
-            savePath="./inputdata/"+ip+"-"+str(num)
+            #savePath="./inputdata/"+ip+"-"+str(num)
+            savePath="./demo/inputdata/"+ip+"-"+str(num)
+
             
             #書き出し先指定
-            cmd.insert(8,savePath+"/"+filename)
+            cmd.insert(9,savePath+"/"+filename)
 
             #書き出し先のフォルダを生成
             os.makedirs(savePath, exist_ok=True)
