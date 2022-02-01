@@ -45,6 +45,7 @@ services:
     environment:
       - "TZ=Asia/Tokyo"
 
+  #データベースのデバッグ用 - 本番環境では動かさない
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     environment:

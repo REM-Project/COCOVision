@@ -1,75 +1,52 @@
-#ライブカメラ映像を画像に書き出し
-#実行コマンドは./script/SaveCameraStream.pyとする（相対パスの関係上）
+#混雑度返答（といいつつ雑にshellコマンドを実行する.py）
 
 #ライブラリ
+import sys
 import subprocess
 import os
-
-#ローカル
-import GetDevicesInfo as DevicesInfo #同一ディレクトリに配置
-
-
+import platform
+import signal
 
 #メインストリーム
 def main():
-    #カメラのIPアドレス・台数を取得 - 処理はGetDevicesInfo.pyに記載
-    devicesIp,numCameras=DevicesInfo.get()
-    
-    #取得した値の確認（デバッグ用）
-    print(devicesIp)
-    print(numCameras)
+    #子プロセス捕捉用
+    popen=[]
 
-    #パラメータの設定
-    # ポート番号は指定した番号から始まり台数に応じて1ずつ連番で割り当てられる - 例 7900 ~ 7902
-    # 改変する場合は映像送信側も確認・変更すること
-    # 開発段階での初期値は7900
-    firstPort=7900
-    # 画像名
-    # OpenPoseで解析する際、ファイル名を指定するため改変時はそちらも確認・改変すること
-    filename="img.jpg"
+    #必ずfinallyを実行させる
+    signal.signal(signal.SIGTERM, sig_handler)
 
-    #成形したコマンドを格納する変数
-    #実行コマンド例 : ffmpeg -re -i http://192.168.10.5:7900 -f image2 -update 1 ./inputdata/192.168.10.5-0/img.jpg
-    execCmd=[]
-    
-    #取得したipアドレス数分ループ
-    for i in range(len(devicesIp)):
-        #ipアドレス代入
-        ip=devicesIp[i]
-        #カメラ台数分ループ - 0 ~ n-1
-        for num in range(numCameras[i]):
-            #固定値
-            cmd=["ffmpeg","-re","-i","-f","image2","-update","1"]
+    try:
 
-            #使用ポート番号成形
-            port=firstPort+num
-            
-            #取得URL成形
-            address=ip+":"+str(port)
+        #pf=platform.system()
+        path=os.path.dirname(__file__)
+        cmds=[]
 
-            #ソース元指定
-            cmd.insert(3,"http://"+address)
-            
-            #書き出し先フォルダパス成形
-            savePath="./inputdata/"+ip+"-"+str(num)
-            
-            #書き出し先指定
-            cmd.insert(8,savePath+"/"+filename)
 
-            #書き出し先のフォルダを生成
-            os.makedirs(savePath, exist_ok=True)
+        cmds.append(["python3",path+"/SaveCameraStream.py"])
+        cmds.append(["python3",path+"/CongServer.py"])
+        for cmd in cmds:
+            popen.append(subprocess.Popen(cmd))
+        
+        while True:
+            pass
+    finally:
+        #Ctrl+Cやkillをキャンセル
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        
+        #子プロセスをkill
+        kill_popen(popen)
+        
+        #デフォルトに戻す
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-            #成形完了・実行用の配列に挿入
-            execCmd.append(cmd)
-    
-    #成形したコマンドを実行
-    for cmd in execCmd:
-        #debug
-        print(cmd)
+def kill_popen(popen):
+    for p in popen:
+        p.kill()
 
-        #非同期実行
-        subprocess.Popen(cmd)
-
+def sig_handler(signum,frame) -> None:
+    sys.exit(1)
 
 #エントリーポイント
 if __name__ == '__main__':

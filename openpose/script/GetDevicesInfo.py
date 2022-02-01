@@ -23,11 +23,11 @@ def main():
     print("user:"+MYSQL_USER+",host:"+MYSQL_HOST)
 
     #データベースに接続
-    cCheck,connection=connectDb(MYSQL_USER,MYSQL_PASS,MYSQL_HOST)
+    cCheck,connection=connect_database(MYSQL_USER,MYSQL_PASS,MYSQL_HOST)
     #if:正常に接続した
     if cCheck:
         #クエリ実行（IPアドレス・カメラ数取得）
-        rCheck,result=execQuery(connection)
+        rCheck,result=exec_query(connection)
         #if:正常に取得した
         if rCheck:
             #変数に結果を格納
@@ -37,17 +37,19 @@ def main():
         else:
             #エラーコード代入
             devicesIp=result[0]
-            numCameras=result[0]
+            numCameras=[0]
     else:
         #エラーコード代入
         devicesIp=connection
-        numCameras=connection
+        numCameras=[0]
     #値の返却
     return devicesIp,numCameras
 
 
+
+
 #DB接続（返り値:接続成否 True or False,DBコネクション connection or エラーコード）
-def connectDb(MYSQL_USER,MYSQL_PASS,MYSQL_HOST):
+def connect_database(MYSQL_USER,MYSQL_PASS,MYSQL_HOST):
     try:
         connection = pymysql.connect(host=MYSQL_HOST,
                                         user=MYSQL_USER,
@@ -62,7 +64,7 @@ def connectDb(MYSQL_USER,MYSQL_PASS,MYSQL_HOST):
         return False,[eCode]
 
 #SQL実行（返り値:実行成否 True or False,実行結果 result[レコード数][カラム数] or エラーコード）
-def execQuery(connection):
+def exec_query(connection):
     devicesIp=[]
     try:    
         cursor = connection.cursor()
@@ -74,6 +76,7 @@ def execQuery(connection):
         print(eCode)
         print(e)
         return False,[eCode]
+
 
 
 

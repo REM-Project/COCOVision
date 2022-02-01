@@ -4,6 +4,7 @@
 #ライブラリ
 import subprocess
 import os
+import time
 
 #ローカル
 import GetDevicesInfo as DevicesInfo #同一ディレクトリに配置
@@ -16,8 +17,8 @@ def main():
     devicesIp,numCameras=DevicesInfo.get()
     
     #取得した値の確認（デバッグ用）
-    print(devicesIp)
-    print(numCameras)
+    # print(devicesIp)
+    # print(numCameras)
 
     #パラメータの設定
     # ポート番号は指定した番号から始まり台数に応じて1ずつ連番で割り当てられる - 例 7900 ~ 7902
@@ -73,4 +74,6 @@ def main():
 
 #エントリーポイント
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        time.sleep(10)
