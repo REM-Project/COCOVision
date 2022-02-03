@@ -46,7 +46,7 @@ def main():
             #固定値
             cmd=["ffmpeg","-y","-re","-i","-f","image2","-update","1"]
 
-            #使用ポート番号成形
+            #使用ポート番号成形.
             port=firstPort+num
             
             #取得URL成形

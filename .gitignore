@@ -1,4 +1,5 @@
 /demo/openpose
+/demo/output_json
 /openpose/openpose
 /openpose/inputdata
 /openpose/script/__pycache__
