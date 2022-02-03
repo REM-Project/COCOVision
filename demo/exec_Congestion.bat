@@ -1,1 +1,1 @@
-python3 Congestion.py
+python3 script/Congestion.py
