@@ -4,10 +4,18 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 現在このリポジトリに含まれているコードはシステムの中のwebシステム部と混雑度測定に関する部分です。（1/31 開発途上の計測デバイス用コード含有。全コード追加・更新予定）
 
 又、このドキュメントを作成したのは2022年です。明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
-# 実行
-ダウンロード・解凍した後、docker-compose.ymlと同一ディレクトリで docker compose up -d を実行します。
 
-Dockerコンテナ内で作業したい場合は docker exec -it コンテナ名 bash で中に入ることができます。
+
+
+## 追記
+* 2/3
+demo内に混雑度の処理を実装しました。
+demo/exec_Congestion.bat又はdemo/script/Congestion.pyを実行して下さい。
+
+# 実行
+ダウンロード・解凍した後、docker-compose.ymlと同一ディレクトリで `docker compose up -d` を実行します。
+
+Dockerコンテナ内で作業したい場合は `docker exec -it コンテナ名 bash` で中に入ることができます。
 
 OpenPoseが動作するか確認するのは下記で確認できると思います。
 ```
