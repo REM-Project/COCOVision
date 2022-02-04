@@ -11,12 +11,14 @@ import signal
 #メインストリーム
 def main():
     #初期定義
-    # このファイルのディレクトリpath
-    path=os.path.dirname(__file__)
+    try:
+        # このファイルのディレクトリpath
+        path=os.path.dirname(__file__)
 
-    # カレントディレクトリをこのファイルがあるディレクトリに変更
-    os.chdir(path)
-
+        # カレントディレクトリをこのファイルがあるディレクトリに変更
+        os.chdir(path)
+    except Exception as e:
+        print(e)
     # 子プロセス捕捉用
     popen=[]
     
@@ -48,20 +50,12 @@ def main():
             camera_port=CAMERA_FIRST_PORT+num
             camera_dir="/dev/video"+str(num)
             #ffmpeg -i /dev/video0 -vcodec libx264 -f mpegts -|vlc -I dummy - --sout='#std{access=http,mux=ts,dst=:7900}'
-            cmd_ffmpeg=["ffmpeg","-i","-vcodec","-f","mpegts"]
-            cmd_ffmpeg.insert(2,camera_dir)
-            cmd_ffmpeg.insert(4,codec)
 
-            cmd_vlc=["-|vlc","-I","dummy","-"]
-            addr="--sout='#std{access=http,mux=ts,dst=:"+camera_port+"}"
-            cmd_vlc.append(addr)
             
-            cmd=[]
-            cmd.extend(cmd_ffmpeg)
-            cmd.extend(cmd_vlc)
+            cmd=["rstpCam.sh",camera_dir,codec,camera_port]
             print(cmd)
 
-            p=subprocess.Popen(cmd)
+            p=subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
             # 終了させるために格納
             popen.append(p)
 

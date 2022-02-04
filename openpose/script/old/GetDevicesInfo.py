@@ -16,9 +16,8 @@ def main():
     MYSQL_HOST=mysql_config.MYSQL_HOST
 
     #変数初期化
-    device_ips = []
-    num_cameras = []
-    ids = []
+    devicesIp = []
+    numCameras = []
 
     #ユーザ情報確認（デバッグ用）
     print("user:"+MYSQL_USER+",host:"+MYSQL_HOST)
@@ -33,19 +32,18 @@ def main():
         if rCheck:
             #変数に結果を格納
             for record in result:
-                device_ips.append(record[0])
-                num_cameras.append(record[1])
-                ids.append(record[2])
+                devicesIp.append(record[0])
+                numCameras.append(record[1])
         else:
             #エラーコード代入
-            device_ips=result[0]
-            num_cameras=[0]
+            devicesIp=result[0]
+            numCameras=[0]
     else:
         #エラーコード代入
-        device_ips=connection
-        num_cameras=[0]
+        devicesIp=connection
+        numCameras=[0]
     #値の返却
-    return device_ips,num_cameras,ids
+    return devicesIp,numCameras
 
 
 
@@ -67,12 +65,12 @@ def connect_database(MYSQL_USER,MYSQL_PASS,MYSQL_HOST):
 
 #SQL実行（返り値:実行成否 True or False,実行結果 result[レコード数][カラム数] or エラーコード）
 def exec_query(connection):
-    device_ips=[]
+    devicesIp=[]
     try:    
         cursor = connection.cursor()
-        cursor.execute("select device_ip_address,num_camera,id from room_info where num_camera != 0;")
-        result=cursor.fetchall()
-        return True,result
+        cursor.execute("select device_ip_address,num_camera from room_info where num_camera != 0;")
+        devicesIp=cursor.fetchall()
+        return True,devicesIp
     except Exception as e:
         eCode="error-02"
         print(eCode)
@@ -82,22 +80,17 @@ def exec_query(connection):
 
 
 
-#外部pythonからの呼び出し応答
-def get_all():
-    device_ips,num_cameras,ids=main()
-    return device_ips,num_cameras,ids
-
+#外部pythonからの呼び出し応答（mainと同一返答）
 def get():
-    device_ips,num_cameras,ids=main()
-    return device_ips,num_cameras,ids
-
+    devicesIp,numCameras=main()
+    return devicesIp,numCameras
 
 #shellからの呼び出し応答（返答形式 xxx.yyy.zzz.aaa,カメラ数 改行(\n)）
 if __name__ == '__main__':
-    device_ips,num_cameras=main()
+    devicesIp,numCameras=main()
 
-    for i in range(len(device_ips)):
-        sys.stdout.write(str(device_ips[i])+","+str(num_cameras[i])+"\n")
+    for i in range(len(devicesIp)):
+        sys.stdout.write(str(devicesIp[i])+","+str(numCameras[i])+"\n")
 
 
 
