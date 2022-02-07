@@ -47,6 +47,7 @@ RUN set -xe && \
             curl
 RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python3
 RUN pip install pymysql
+RUN pip install psutil
 
 #v4ls setup
 #RUN echo "options v4l2loopback video_nr=0 exclusive_caps=1" | sudo tee -a /etc/modprobe.d/v4l2loopback.conf

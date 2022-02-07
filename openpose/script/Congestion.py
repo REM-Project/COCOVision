@@ -106,12 +106,6 @@ def exec_openpose(camera_addr,out_dir):
     os.makedirs(out_dir, exist_ok=True)
 
     cmd=["bash","OpenPoseIpCamToJson.sh",camera_addr,out_dir]
-
-    #debug
-    # print()
-    # print(cmd)
-    # print(cwd)
-    # print()
     
     try:
         return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
@@ -127,14 +121,15 @@ def exec_cong_server(device_ip,cong_port,num_camera):
 
 
 # 子プロセス終了
-def kill_popen(p):
-    process = psutil.Process(p.pid)
-    for proc in process.children(recursive=True):
-        proc.kill()
-    process.kill()
-    #for p in popen:
-    #    kill(p)
-    #    p.terminate()
+def kill_popen(popen):
+    # for p in popen:    
+    #     process = psutil.Process(p.pid)
+    #     for proc in process.children(recursive=True):
+    #         proc.kill()
+    #     process.kill()
+    for p in popen:
+       #kill(p)
+       p.terminate()
 
 # finallyを実行させるための形式上の宣言
 def sig_handler(signum,frame) -> None:

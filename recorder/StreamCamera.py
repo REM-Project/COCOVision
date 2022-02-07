@@ -70,18 +70,19 @@ def main():
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         
         #子プロセスをkill
-        kill_popen(p)
+        kill_popen(popen)
         
         #デフォルトに戻す
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # 子プロセス終了
-def kill_popen(p):
-    process = psutil.Process(p.pid)
-    for proc in process.children(recursive=True):
-        proc.kill()
-    process.kill()
+def kill_popen(popen):
+    for p in popen:
+        process = psutil.Process(p.pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
     #for p in popen:
     #    kill(p)
     #    p.terminate()

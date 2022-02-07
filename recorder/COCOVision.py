@@ -1,8 +1,12 @@
+#https://zenn.dev/wok/scraps/a2b5839326c7e7
+
+
+import sys
 import time
-import board
-import adafruit_scd4x
+from tkinter import Tk, messagebox
+#import board
+#import adafruit_scd4x
 import pymysql.cursors
-from tkinter import *
 from tkinter import ttk
 import tkinter
 import tkinter.font as font
@@ -10,8 +14,8 @@ import datetime
 import threading
 import os
 import socket
-import pygame
-from mutagen.mp3 import MP3 as mp3
+#import pygame
+#from mutagen.mp3 import MP3 as mp3
 from datetime import timedelta
 import subprocess
 import StreamCamera
@@ -119,96 +123,7 @@ class mes: #メソッド内で使う変数を定義
     DB_count = 0    
 canvas.move(mes.text_id, mesrect_x, mesrect_y)
 
-#初期化
-SETUP_CODE="""
-import os
-import pymysql.cursors
-import PySimpleGUI as sg
-import ipget
 
-layout1 = [
-  [sg.Text('データベースIPアドレス入力画面')],
-  [sg.Text('データベースのIPアドレス', size=(15,1)), sg.InputText('172.30.8.206')],
-  [sg.Submit(button_text='接続')]]
-
-roomlist=[]
-layout2 = [
-  [sg.Text('COCOVision-Config')],
-  [sg.Text('部屋名', size=(15, 1)),sg.Combo((roomlist),readonly=True,default_value='部屋一覧',size=(20, 1))],
-  [sg.Checkbox('カメラ接続')],
-  [sg.Submit(button_text='適用')]]
-
-def showWin1():
-    win1 = sg.Window('COCOVision-Config', layout1)
-    while True:
-        event, values = win1.read()
-        if event is None: break
-        if event == '接続':
-            try:
-                connection = pymysql.connect(host=values[0],
-                                             user='recorder',
-                                             password='th1117',
-                                             db='cocovision',
-                                             charset='utf8')
-                sg.popup('接続しました')
-                win1.close()
-                return True,connection,values[0]
-            except:
-                sg.popup('接続できませんでした、もう一度入力してください')
-                return False
-
-def showWin2(connection,dbip):
-    try:#get to room list
-        cursor = connection.cursor()
-        cursor.execute('select room_name from room_info;')
-        result=cursor.fetchall()
-        for row in result:
-            roomlist.append(str(row[0]))
-        cursor.close()
-    except:
-        sg.popup('接続できませんでした、もう一度入力してください')
-        
-    win2 = sg.Window('COCOVision-Config', layout2)
-    while True:
-        event, values = win2.read()
-        if event is None: break
-        if event == '適用':
-            if values[0]=='部屋一覧':
-                sg.popup('部屋を選択してください')
-            else:
-                setupCnf(values,dbip)
-                setupDb(connection,values)
-    win2.close()
-
-def setupCnf(values,dbip):
-    path = os.getcwd()
-    room_name=values[0]
-    camera=values[1]
-    with open(path+'/COCOVision.config', 'w') as f:
-        f.write(room_name+'\\n'+str(camera)+'\\n'+dbip)
-
-
-def setupDb(connection,values):
-    try: #mysqlデータベースに接続
-        cursor=connection.cursor()
-        ip = ipget.ipget()
-        sql = '''update room_info set device_ip_address=%(ip)s,is_camera=%(camera)s where room_name=%(room)s;'''
-        into ={'ip':ip.ipaddr('wlan0'),'camera':values[1],'room':values[0]}
-        cursor.execute(sql,into)
-        connection.commit()
-        cursor.close()
-        sg.popup('適用しました')
-    except: #接続できなかったらエラー文
-        print('データベースへの登録に失敗しました')
-        sg.popup('データベースへの登録に失敗しました')
-
-#start task
-reWin1=showWin1()
-if(reWin1[0]):showWin2(reWin1[1],reWin1[2])
-
-showWindow()
-
-"""
 def congrecieve():#混雑度を計測するメソッド
     print('call congrecieve')
     try:
@@ -315,7 +230,7 @@ def databaseconnect():
         cursor = connection.cursor()
     except: #接続できなかったらエラー文
         print("DB access error")
-        return "false"
+        return False
     try:
         with connection.cursor() as cursor: 
             sql = "SELECT room_capacity,table_name,id FROM room_info WHERE room_name = %s" 
@@ -328,9 +243,9 @@ def databaseconnect():
             connection.commit()
             cursor.close()
             print("DB access commit")
-            return "true",connection,cursor,room_capacity,table_name,room_id
+            return True,connection,cursor,room_capacity,table_name,room_id
     except:
-        return "false"
+        return False
     
 def socketconnect(room_id):
     if int(config[1]) >= 1:
@@ -348,24 +263,14 @@ def socketconnect(room_id):
         return 1    
     
 config=[]
-isntSetup=True
 try:
-    with open("COCOVision.config", "r") as f:
+    with open("COCOVision.config", "r",encoding="utf-8") as f:
         config=f.read().splitlines()
-        isntSetup=False
-except:
-    with open("COCOVision-setup.py", "w") as f:
-        f.write(SETUP_CODE)
-    subprocess.Popen(['python3',os.getcwd()+"/COCOVision-setup.py"])
+except IOError as e:
+    messagebox.showerror('IOError', 'COCOVision.configが見つかりません。COCOVision-setup.pyを実行してください。')
+    sys.exit(str(e))
+    #subprocess.Popen(['python3',os.getcwd()+"/COCOVision-setup.py"])
 
-while isntSetup:
-    try:
-        with open("COCOVision.config", "r") as f:
-            config=f.read().splitlines()
-            isntSetup=False
-    except:
-        print("configファイルのロードに失敗しました。3秒後に再ロードします。")
-        time.sleep(3)
 
 
 #センサーから値を出力するための記述
@@ -383,7 +288,7 @@ while True:
     if(mes.databasesitu == 0 and mes.DB_count!=1):
         mes.DB_count += 1
         redatabase = databaseconnect()
-        if(redatabase[0] == "true"):
+        if(redatabase[0]):
             connection = redatabase[1]
             cursor = redatabase[2]
             room_capacity = redatabase[3]

@@ -62,6 +62,7 @@ def main():
 
                 # openpose(OpenPoseIpCamToJson.sh) 実行
                 p=exec_openpose(camera_addr,out_dir)
+                print(p.pid)
 
                 # 終了させるために格納
                 popen.append(p)
@@ -128,14 +129,15 @@ def exec_cong_server(device_ip,cong_port,num_camera):
 
 # 子プロセス終了
 # 子プロセス終了
-def kill_popen(p):
-    process = psutil.Process(p.pid)
-    for proc in process.children(recursive=True):
-        proc.kill()
-    process.kill()
-    #for p in popen:
-    #    kill(p)
-    #    p.terminate()
+def kill_popen(popen):
+    # for p in popen:
+    #     print(p)
+    #     process = psutil.Process(p.pid)
+    #     process.terminate ()
+    #     #process.kill()
+    for p in popen:
+       #p.kill()
+       p.terminate()
 
 # finallyを実行させるための形式上の宣言
 def sig_handler(signum,frame) -> None:
