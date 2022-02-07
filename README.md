@@ -3,7 +3,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 現在このリポジトリに含まれているコードはシステムの中のwebシステム部と混雑度測定に関する部分です。（1/31 開発途上の計測デバイス用コード含有。全コード追加・更新予定）
 
-又、このドキュメントを作成したのは2022年です。明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
+又、明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
 
 
 
@@ -43,6 +43,10 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 * Intel Core i5-9600K
 * NVIDIA Geforce RTX 2070
 
+## 計測デバイス
+* Raspberry Pi 3 / 4
+* [SCD40](https://www.switch-science.com/catalog/7169/)（CO₂・温湿度センサー） 
+* webカメラ（任意数 - 2/7 1台の動作のみ確認）
 
 # 引継事項
 ## demoファルダについて
