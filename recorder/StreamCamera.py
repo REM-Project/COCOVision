@@ -7,7 +7,7 @@ import sys
 import subprocess
 import os
 import signal
-
+import psutil
 #メインストリーム
 def main():
     #初期定義
@@ -52,33 +52,39 @@ def main():
             #ffmpeg -i /dev/video0 -vcodec libx264 -f mpegts -|vlc -I dummy - --sout='#std{access=http,mux=ts,dst=:7900}'
 
             
-            cmd=["rstpCam.sh",camera_dir,codec,camera_port]
+            cmd=["bash","rstpCam.sh",str(camera_dir),str(codec),str(camera_port)]
             print(cmd)
-
+            
             p=subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
+            print(p.pid)
             # 終了させるために格納
             popen.append(p)
-
+            
         # 中断されるまで待機（ループ）
         while True:
             pass
-                    
+        
     finally:
         #Ctrl+Cやkillをキャンセル
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         
         #子プロセスをkill
-        kill_popen(popen)
+        kill_popen(p)
         
         #デフォルトに戻す
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # 子プロセス終了
-def kill_popen(popen):
-    for p in popen:
-        p.kill()
+def kill_popen(p):
+    process = psutil.Process(p.pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
+    #for p in popen:
+    #    kill(p)
+    #    p.terminate()
 
 # finallyを実行させるための形式上の宣言
 def sig_handler(signum,frame) -> None:

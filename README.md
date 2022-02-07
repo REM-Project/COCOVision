@@ -15,6 +15,13 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
     実行する際にWindows版のOpenPoseが必要です。[demoファルダについて](#demoファルダについて)を見て配置して下さい。
 
+* ### 2/7
+  * [recorder](recorder)内に計測デバイス（Raspberry Pi 3・4）のコードを追加しました。
+  * [COCOVision.py](recorder/COCOVision.py)を実行すると計測が開始されます。
+  * [COCOVision-setup.py](recorder/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/COCOVision.config)を直接書き換えてください。
+  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録できます。（削除未対応）
+
+
 # 実行
 ダウンロード・解凍した後、docker-compose.ymlと同一ディレクトリで `docker compose up -d` を実行します。
 

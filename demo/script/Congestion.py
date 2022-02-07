@@ -9,6 +9,8 @@ import os
 import platform
 import signal
 
+import psutil
+
 #ローカル（同階層）
 import GetDevicesInfo as DevicesInfo
 #メインストリーム
@@ -125,9 +127,15 @@ def exec_cong_server(device_ip,cong_port,num_camera):
 
 
 # 子プロセス終了
-def kill_popen(popen):
-    for p in popen:
-        p.kill()
+# 子プロセス終了
+def kill_popen(p):
+    process = psutil.Process(p.pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
+    #for p in popen:
+    #    kill(p)
+    #    p.terminate()
 
 # finallyを実行させるための形式上の宣言
 def sig_handler(signum,frame) -> None:
