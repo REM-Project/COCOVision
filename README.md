@@ -1,7 +1,7 @@
 # COCOVision
 COCOVisionは室内の環境値を測定・警告し、新型コロナウイルス感染拡大を抑止することを目的としたシステムです。
 
-現在このリポジトリに含まれているコードはシステムの中のwebシステム部と混雑度測定に関する部分です。（1/31 開発途上の計測デバイス用コード含有。全コード追加・更新予定）
+[recorder](recorder/)内に配置されているのが計測デバイス用のコードで、その他は処理用PC側のコードです。
 
 又、明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
 
@@ -16,18 +16,21 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
     実行する際にWindows版のOpenPoseが必要です。[demoファルダについて](#demoファルダについて)を見て配置して下さい。
 
 * ### 2/7
-  * [recorder](recorder)内に計測デバイス（Raspberry Pi 3・4）のコードを追加しました。
+  * [recorder](recorder)内に計測デバイス（Raspberry Pi 3 / 4）のコードを追加しました。
   * [COCOVision.py](recorder/COCOVision.py)を実行すると計測が開始されます。
   * [COCOVision-setup.py](recorder/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/COCOVision.config)を直接書き換えてください。
-  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録できます。（削除未対応）
+  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録できます。（2/8 削除未対応）
 
 
 # 実行
-ダウンロード・解凍した後、docker-compose.ymlと同一ディレクトリで `docker compose up -d` を実行します。
+ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
 
-Dockerコンテナ内で作業したい場合は `docker exec -it コンテナ名 bash` で中に入ることができます。
+その後[demo/script/Congestion.py](demo/script/Congestion.py) を実行して下さい。（カメラ映像から人数解析・計測デバイスに送信）
 
-OpenPoseが動作するか確認するのは下記で確認できると思います。
+
+~~Dockerコンテナ内で作業したい場合は `docker exec -it コンテナ名 bash` で中に入ることができます。~~
+
+~~OpenPoseが動作するか確認するのは下記で確認できると思います。~~
 ```
 cd /usr/local/openpose/build/examples/openpose
 mkdir data
@@ -37,7 +40,9 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 # 実行環境
 ## OS・ドライバー
 * Windows10
-* NVIDIA Studio Driver 511.09（2022/01/18現在最新版）
+* NVIDIA Studio Driver 511.09
+* Docker Desktop 4.4.4
+* WSL2(Ubuntu20.04)
 
 ## ハードウェア
 * Intel Core i5-9600K
@@ -48,13 +53,34 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 * [SCD40](https://www.switch-science.com/catalog/7169/)（CO₂・温湿度センサー） 
 * webカメラ（任意数 - 2/7 1台の動作のみ確認）
 
+# ココデ×ガバルQ&A
+1. ### [demo/script/Congestion.py](demo/script/Congestion.py)を実行しても、[CongServer.py](demo/script/CongServer.py)は動くが[OpenPoseIpCamToJson.py](demo/script/OpenPoseIpCamToJson.sh)(OpenPose)が動かない。
+    <p>A. WSLのデフォルトのディストリビューションを確認して下さい</p>
+    <p>dockerのやつとかになってるとbashが無反応になります（1敗）</p>
+    <p>対処法は下記の通り</p>
+
+    ```
+    #確認コマンド
+    wsl -l
+    #変更するコマンド
+    wsl -s <ディストリビューション名>
+
+    ```
+2. ### カメラ映像が取得できない
+    <p>A. 以下に当て嵌まるかどうか確認・該当した箇所を修正して下さい</p>
+    
+    * データベースに計測デバイスのIPアドレスは登録されていますか
+    * 処理用PCと同じネットワークに属していますか
+    * データベースとOpenPoseを別々のPCで実行していませんか
+    
+
 # 引継事項
 ## demoファルダについて
 [demo](demo)には本来Windows版のOpenPoseを配置しています。
 
 また現時点（1/31）では開発途中のファイルがそのまま残っています。（2/4 Windows用のbatchが [demo/old/](demo/old/) に、使わなくなったpythonファイルが [demo/script/not-use](demo/script/not-use/) にあります。）bat形式のファイルがdemo版のOpenposeを動かすものです。Openposeの引数についてはそちらを参考にするか検索して下さい。
 
-Githubで管理する関係上省きましたが、プレゼン等でデモンストレーションを行う際に必要であれば[公式のリリース](https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases)から落としてください。
+Githubで管理する関係上省きましたが、~~プレゼン等でデモンストレーションを行う際に必要であれば~~(Docker上で動いてないので現状必須です - 2/8) [公式のリリース](https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases)から落としてください。
 
 開発途中でapache2からnginxに切り替えましたが、apache2のDockerfile自体は残してありますので切り替えは簡単です。
 
