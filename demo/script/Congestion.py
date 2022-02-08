@@ -6,7 +6,6 @@ import shutil
 import sys
 import subprocess
 import os
-import platform
 import signal
 
 import psutil
@@ -62,7 +61,7 @@ def main():
 
                 # openpose(OpenPoseIpCamToJson.sh) 実行
                 p=exec_openpose(camera_addr,out_dir)
-                print(p.pid)
+                #print(p.pid)
 
                 # 終了させるために格納
                 popen.append(p)
@@ -108,20 +107,16 @@ def exec_openpose(camera_addr,out_dir):
 
     cmd=["bash","OpenPoseIpCamToJson.sh",camera_addr,out_dir]
 
-    #debug
-    # print()
-    # print(cmd)
-    # print(cwd)
-    # print()
-    
     try:
-        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
+        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd=os.getcwd())
     except Exception as e:
+        print("noop")
         print(e)
 
 
 #人数取得実行
 def exec_cong_server(device_ip,cong_port,num_camera):
+    print("call CongServer.py")
     cmd=["python3","CongServer.py",device_ip,str(cong_port),str(num_camera)]
     return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
 
@@ -130,6 +125,7 @@ def exec_cong_server(device_ip,cong_port,num_camera):
 # 子プロセス終了
 # 子プロセス終了
 def kill_popen(popen):
+    print("call kill_popen")
     # for p in popen:
     #     print(p)
     #     process = psutil.Process(p.pid)

@@ -75,9 +75,6 @@ def main(device_ip,port,num_camera):
 
 if __name__ == '__main__':
     #コマンドライン引数から読み込み
-    print(len(sys.argv))
-    for a in sys.argv:
-        print(a)
     device_ip=sys.argv[1]
     port = int(sys.argv[2])
     num_camera=int(sys.argv[3])
