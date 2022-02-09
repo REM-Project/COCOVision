@@ -27,66 +27,13 @@ from multiprocessing import Process
 def main():
     #画面定義
 
-
     root = Tk()
     root.title("室内環境")
     root.attributes('-fullscreen', True)
     root.geometry("1920x1080")
 
-    canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
-    canvas.place(x=0, y=0) #canvas設置
-
-    #左側の四角描画
-    canvas.create_rectangle(40, 210, 950, 850, fill = 'white', outline="#009D5B", width = 30, tag="rect")
-    #右側の四角描画
-    mesrect = canvas.create_rectangle(1000, 310, 1850, 750, fill = 'white', outline="#000000", width = 10 )
-    #右下の四角描画
-    canvas.create_rectangle(1300, 870, 1850, 1020, fill = 'white', outline="#000000", width = 10)
-
-    mesrectpos = canvas.coords(mesrect) #右側の四角の座標を取得
-    mesrect_x = mesrectpos[0] + (mesrectpos[2]-mesrectpos[0])/ 2 #x軸の真ん中の座標を取得
-    mesrect_y = mesrectpos[1] + (mesrectpos[3]-mesrectpos[1])/2 #y軸の真ん中の座標を取得
-
-    #利用するフォントスタイルを定義
-    fontStyle = font.Font(family="MSゴシック",size=80)
-    messagefont = font.Font(family="MSゴシック", size=50)
-    datefont = font.Font(family="MSゴシック",size=30)
-
-    #ラベル定義と設置(これがないとwhile文のplace_forget()でエラーがでる)
-    messagetext = tkinter.StringVar(value = "初期設定中")
-    co2label = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    templabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    humlabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    conglabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    todaylabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
-    nowlabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
-    todaydate = "日時：" + str(0) + "年" + str(0) + "月" + str(0) + "日"
-    nowdate = "時刻：" + str(0) + "時" + str(0) + "分" + str(0) + "秒"
-    co2label.place(x=400,y=250)
-    templabel.place(x=400,y=380)
-    humlabel.place(x=400,y=510)
-    conglabel.place(x=450,y=640)
-    todaylabel.place(x=1320, y=890)
-    nowlabel.place(x=1320, y=950)
-
-    #CO2, 温度, 湿度, メッセージ表示
-    label_1 = ttk.Label(root,text='CO2', font=fontStyle, background='white', anchor="w" )
-    label_2 = ttk.Label(root,text='温度', font=fontStyle, background='white', anchor="w" )
-    label_3 = ttk.Label(root,text='湿度', font=fontStyle, background='white', anchor="w" )
-    label_4 = ttk.Label(root,text='混雑度', font=fontStyle, background='white', anchor="w" )
-    messagelabel = ttk.Label(root, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
-    label_1.place(x=70, y=250)
-    label_2.place(x=70, y=380)
-    label_3.place(x=70, y=510)
-    label_4.place(x=70, y=640)
-    messagelabel.place(x=1010, y=200)
-
-    text_id = canvas.create_text(0,0,font=("MSゴシック",48) ,text=messagetext.get(), tag="mestext")
-
-    canvas.move(text_id, mesrect_x, mesrect_y)
-
-
-    #画面定義終わり
+    
+                                                                                                                                                                                                                                                                                                                                                                                                                                              
 
 
 
@@ -155,11 +102,13 @@ def main():
 
     #メインストリーム
     while True:
-
+        now_datetime=datetime.datetime.now()
+        th_display = threading.Thread(target=display)
+        th_display.start()
         #センサー値取得
         co2,temp,humi=0
-        #データベース送信用に格納
-        if(datetime.datetime()>=START_INTERVAL):
+        #データベース送信用に格納(最初の30秒は格納しない)
+        if(now_datetime>=START_INTERVAL):
             co2,temp,humi=get_value()
             sum_co2+=co2
             sum_temp+=temp
@@ -167,20 +116,21 @@ def main():
             count_get_values+=1
 
         #混雑度取得
-        cong=-1
+        cong=-2
         if(is_stream_cam and is_connect_db):
             cong=get_cong(HOST,BASE_PORT,room_id,room_capacity)
-            sum_cong+=cong
-            count_get_cong+=1
+            if(cong!=-1):
+                sum_cong+=cong
+                count_get_cong+=1
 
 
         #画面出力
-        display(co2,temp,humi,cong)
+        display(root,now_datetime,co2,temp,humi,cong,is_stream_cam)
 
 
-        if(datetime.datetime()>=(send_time+timedelta(minutes=send_interval))):
+        if(now_datetime>=(send_time+timedelta(minutes=send_interval))):
             #記録時間
-            rec_time=datetime.datetime().strftime("%Y-%m-%d %H:%M:00")
+            rec_time=now_datetime.strftime("%Y-%m-%d %H:%M:00")
             #平均値算出
             avg_co2=round(sum_co2/count_get_values,3)
             avg_temp=round(sum_temp/count_get_values,3)
@@ -199,24 +149,190 @@ def main():
                 
 
 
+def display(root,now_datetime,co2,temp,humi,cong):
+    #画面定義
+
+    canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
+    canvas.place(x=0, y=0) #canvas設置
+
+    #左側の四角描画
+    canvas.create_rectangle(40, 210, 950, 850, fill = 'white', outline="#009D5B", width = 30, tag="rect")
+    #右側の四角描画
+    mesrect = canvas.create_rectangle(1000, 310, 1850, 750, fill = 'white', outline="#000000", width = 10 )
+    #右下の四角描画
+    canvas.create_rectangle(1300, 870, 1850, 1020, fill = 'white', outline="#000000", width = 10)
+    mesrectpos = canvas.coords(mesrect) #右側の四角の座標を取得
+    mesrect_x = mesrectpos[0] + (mesrectpos[2]-mesrectpos[0])/ 2 #x軸の真ん中の座標を取得
+    mesrect_y = mesrectpos[1] + (mesrectpos[3]-mesrectpos[1])/2 #y軸の真ん中の座標を取得
+
+    #利用するフォントスタイルを定義
+    fontStyle = font.Font(family="MSゴシック",size=80)
+    messagefont = font.Font(family="MSゴシック", size=50)
+    datefont = font.Font(family="MSゴシック",size=30)
+
+    #ラベル定義と設置(これがないとwhile文のplace_forget()でエラーがでる)
+    messagetext = tkinter.StringVar(value = "初期設定中")
+    co2label = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    templabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    humlabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    conglabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    todaylabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
+    nowlabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
+    todaydate = "日時：" + str(0) + "年" + str(0) + "月" + str(0) + "日"
+    nowdate = "時刻：" + str(0) + "時" + str(0) + "分" + str(0) + "秒"
+    co2label.place(x=400,y=250)
+    templabel.place(x=400,y=380)
+    humlabel.place(x=400,y=510)
+    conglabel.place(x=450,y=640)
+    todaylabel.place(x=1320, y=890)
+    nowlabel.place(x=1320, y=950)
+
+    #CO2, 温度, 湿度, メッセージ表示
+    label_1 = ttk.Label(root,text='CO2', font=fontStyle, background='white', anchor="w" )
+    label_2 = ttk.Label(root,text='温度', font=fontStyle, background='white', anchor="w" )
+    label_3 = ttk.Label(root,text='湿度', font=fontStyle, background='white', anchor="w" )
+    label_4 = ttk.Label(root,text='混雑度', font=fontStyle, background='white', anchor="w" )
+    messagelabel = ttk.Label(root, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
+    label_1.place(x=70, y=250)
+    label_2.place(x=70, y=380)
+    label_3.place(x=70, y=510)
+    label_4.place(x=70, y=640)
+    messagelabel.place(x=1010, y=200)
+
+    text_id = canvas.create_text(0,0,font=("MSゴシック",48) ,text=messagetext.get(), tag="mestext")
+
+    canvas.move(text_id, mesrect_x, mesrect_y)
+
+
+    #画面定義終わり
+
+    msg_co2,msg_temp,msg_humi,msg_cong=""
 
 
 
-
-
-
-
-
-    def textlocation():
+    def textlocation(canvas,messagetext,msg_co2,msg_temp,msg_humi,msg_cong):
         if(normal != ""):
             messagetext.set(normal)
         else:
-            messagetext.set(mes.co2save + mes.tempsave + mes.humsave + mes.congsave)
+            messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
         canvas.itemconfigure("mestext", text=messagetext.get())
-        text_size = canvas.bbox(mes.text_id)
+        text_size = canvas.bbox(text_id)
         mestext_x = text_size[0] + (text_size[2] - text_size[0]) / 2
         mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
-        canvas.move(mes.text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
+        canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
+
+    #if(oldco2 == mes.co2) and (oldtemp == mes.temp) and (oldhum == mes.hum): #センサーの値が更新されていないときに、ラベルが同じ値のまま更新されるのを防ぐために配置
+    #        pass
+    #else: #センサーの値が更新されたときに以下を実行しラベルの再設置
+    co2label["text"] = str(co2) + "ppm" 
+    templabel["text"] = str(round(temp, 1)) + "℃"
+    humlabel["text"] = str(round(humi , 1)) + "%"
+    if(cong==-2):
+        conglabel["text"] = "計測不可"
+    elif(cong==-1):
+        conglabel["text"] = "計測失敗"
+    else:
+        conglabel["text"] = str(round(cong,1)) + "%"
+#        oldco2 = mes.co2 #oldco2に現在のCO2濃度を格納
+#        oldtemp = mes.temp
+#        oldhum = mes.hum
+#        oldcong = mes.congdata
+    #設置されてある日時ラベル削除,設定,設置
+#    if(olddate == now_datetime.today):#日付は更新されたタイミングで表示
+#        pass
+#    else:
+    todaydate = "日時：" + str(now_datetime.year) + "年" + str(now_datetime.month) + "月" + str(now_datetime.day) + "日"
+    todaylabel["text"] = todaydate 
+    olddate = now_datetime.today
+    
+    nowtime = "時刻：" + str(now_datetime.hour) + "時" + str(now_datetime.minute) + "分" + str(now_datetime.second) + "秒" #時刻は毎秒更新
+    nowlabel["text"] = nowtime 
+    #CO2濃度によって枠線の色を変更
+    if (co2 >= 1000) and (co2 < 1500) :
+        canvas.itemconfigure("rect" ,outline="Orange")
+        co2save = "\n換気を行ってください"
+        textlocation()
+        co2label["foreground"] = '#ff0033'
+    elif(co2 >= 1500) and (co2 < 2000):
+        canvas.itemconfigure("rect" ,outline="Red")
+        msg_co2 = "\n換気を行ってください"
+        textlocation()
+        co2label["foreground"] = '#ff0033'
+    elif(co2 >= 2000):
+        canvas.itemconfigure("rect" ,outline="Purple")
+        msg_co2 = "\n今すぐ換気してください"
+        textlocation()
+        co2label["foreground"] = '#ff0033'
+    else:
+        canvas.itemconfigure("rect" ,outline="#009D5B")
+        msg_co2 = ""
+        textlocation()
+        co2label["foreground"] = '#000000'
+
+    if(mes.temp < 18) and (tempsituation != 1 ):
+        mes.tempsave = "\n暖房してください"
+        textlocation()
+        templabel["foreground"] = '#0066cc'
+        tempsituation = 1
+    elif(mes.temp > 28) and (tempsituation != 2 ):
+        mes.tempsave = "\n冷房してください"
+        textlocation()
+        templabel["foreground"] = '#ff0033'
+        tempsituation = 2
+    elif(mes.temp >= 18) and (mes.temp <= 28) and (tempsituation != 0):
+        mes.tempsave = ""
+        textlocation()
+        tempsituation = 0
+        templabel["foreground"] = '#000000'
+        
+    if(mes.hum < 40) and (humsituation != 1 ):
+        mes.humsave = "\n加湿してください"
+        textlocation()
+        humlabel["foreground"] = '#0066cc'
+        humsituation = 1
+    elif(mes.hum > 70) and (humsituation != 2):
+        mes.humsave = "\n除湿してください"
+        textlocation()
+        humlabel["foreground"] = '#ff0033'
+        humsituation = 2
+    elif(mes.hum >= 40) and (mes.hum <= 70) and (humsituation != 0):
+        mes.humsave = ""
+        textlocation()
+        humsituation = 0
+        humlabel["foreground"] = '#000000'
+        
+    if(mes.congdata > 100) and (congsituation == 0):
+        savesituation()
+        mes.congsave = "\n収容人数を超過しています"
+        textlocation()
+        conglabel["foreground"] = '#ff0033'
+        congsituation = 1
+    elif(mes.congdata <= 100) and (congsituation == 1):
+        mes.congsave = ""
+        textlocation()
+        congsituation = 0
+        conglabel["foreground"] = '#000000'
+    
+    if(mes.co2 <= 999) and (mes.temp >= 18) and (mes.temp <= 28) and (mes.hum >= 40) and (mes.hum <=70):
+        normal = "\n正常値です"
+        textlocation()
+    elif(normal == "\n正常値です"):
+        normal = ""
+        textlocation()
+        
+    if(mes.sound_count == 5): #約10分経過後
+        if(int(rectanglecolor)+int(tempsituation)+int(humsituation)+int(congsituation)!=0): #いずれかに警告が必要な場合
+            #左から(co2,温度,湿度,人数)の「状態を表す数値」を示している
+            soundmethod(rectanglecolor,tempsituation,humsituation,congsituation)
+        #初期化
+        mes.sound_count = 0
+        mes.DB_count = 0
+        
+    root.update_idletasks()
+    root.update()
+    time.sleep(1)
+
+
 
 
 
@@ -293,118 +409,7 @@ def get_cong(HOST,BASE_PORT,room_id,room_capacity):
     return cong
 
 
-def display():
-    if(oldco2 == mes.co2) and (oldtemp == mes.temp) and (oldhum == mes.hum): #センサーの値が更新されていないときに、ラベルが同じ値のまま更新されるのを防ぐために配置
-            pass
-        else: #センサーの値が更新されたときに以下を実行しラベルの再設置
-            co2label["text"] = str(mes.co2) + "ppm" 
-            templabel["text"] = str(round(mes.temp, 1)) + "℃"
-            humlabel["text"] = str(round(mes.hum , 1)) + "%"
-            if(camerasituation == 1):
-                conglabel["text"] = "計測不可"
-            else:
-                conglabel["text"] = str(mes.congdata) + "%"
-            oldco2 = mes.co2 #oldco2に現在のCO2濃度を格納
-            oldtemp = mes.temp
-            oldhum = mes.hum
-            oldcong = mes.congdata
-        #設置されてある日時ラベル削除,設定,設置
-        if(olddate == mes.nowdate.today):#日付は更新されたタイミングで表示
-            pass
-        else:
-            todaydate = "日時：" + str(mes.nowdate.year) + "年" + str(mes.nowdate.month) + "月" + str(mes.nowdate.day) + "日"
-            todaylabel["text"] = todaydate 
-            olddate = mes.nowdate.today
-        nowtime = "時刻：" + str(mes.nowdate.hour) + "時" + str(mes.nowdate.minute) + "分" + str(mes.nowdate.second) + "秒" #時刻は毎秒更新
-        nowlabel["text"] = nowtime 
-        #CO2濃度によって枠線の色を変更
-        if (mes.co2 >= 1000) and (mes.co2 < 1500) and (rectanglecolor != orange):
-            canvas.itemconfigure("rect" ,outline="Orange")
-            mes.co2save = "\n換気を行ってください"
-            textlocation()
-            rectanglecolor = orange
-            co2label["foreground"] = '#ff0033'
-        elif(mes.co2 >= 1500) and (mes.co2 < 2000) and (rectanglecolor != red):
-            canvas.itemconfigure("rect" ,outline="Red")
-            mes.co2save = "\n換気を行ってください"
-            textlocation()
-            rectanglecolor = red
-            co2label["foreground"] = '#ff0033'
-        elif(mes.co2 >= 2000) and (rectanglecolor != purple):
-            canvas.itemconfigure("rect" ,outline="Purple")
-            mes.co2save = "\n今すぐ換気してください"
-            textlocation()
-            rectanglecolor = purple
-            co2label["foreground"] = '#ff0033'
-        elif(mes.co2 <= 999) and (rectanglecolor != green):
-            canvas.itemconfigure("rect" ,outline="#009D5B")
-            mes.co2save = ""
-            textlocation()
-            rectanglecolor = green
-            co2label["foreground"] = '#000000'
 
-        if(mes.temp < 18) and (tempsituation != 1 ):
-            mes.tempsave = "\n暖房してください"
-            textlocation()
-            templabel["foreground"] = '#0066cc'
-            tempsituation = 1
-        elif(mes.temp > 28) and (tempsituation != 2 ):
-            mes.tempsave = "\n冷房してください"
-            textlocation()
-            templabel["foreground"] = '#ff0033'
-            tempsituation = 2
-        elif(mes.temp >= 18) and (mes.temp <= 28) and (tempsituation != 0):
-            mes.tempsave = ""
-            textlocation()
-            tempsituation = 0
-            templabel["foreground"] = '#000000'
-            
-        if(mes.hum < 40) and (humsituation != 1 ):
-            mes.humsave = "\n加湿してください"
-            textlocation()
-            humlabel["foreground"] = '#0066cc'
-            humsituation = 1
-        elif(mes.hum > 70) and (humsituation != 2):
-            mes.humsave = "\n除湿してください"
-            textlocation()
-            humlabel["foreground"] = '#ff0033'
-            humsituation = 2
-        elif(mes.hum >= 40) and (mes.hum <= 70) and (humsituation != 0):
-            mes.humsave = ""
-            textlocation()
-            humsituation = 0
-            humlabel["foreground"] = '#000000'
-            
-        if(mes.congdata > 100) and (congsituation == 0):
-            savesituation()
-            mes.congsave = "\n収容人数を超過しています"
-            textlocation()
-            conglabel["foreground"] = '#ff0033'
-            congsituation = 1
-        elif(mes.congdata <= 100) and (congsituation == 1):
-            mes.congsave = ""
-            textlocation()
-            congsituation = 0
-            conglabel["foreground"] = '#000000'
-        
-        if(mes.co2 <= 999) and (mes.temp >= 18) and (mes.temp <= 28) and (mes.hum >= 40) and (mes.hum <=70):
-            normal = "\n正常値です"
-            textlocation()
-        elif(normal == "\n正常値です"):
-            normal = ""
-            textlocation()
-            
-        if(mes.sound_count == 5): #約10分経過後
-            if(int(rectanglecolor)+int(tempsituation)+int(humsituation)+int(congsituation)!=0): #いずれかに警告が必要な場合
-                #左から(co2,温度,湿度,人数)の「状態を表す数値」を示している
-                soundmethod(rectanglecolor,tempsituation,humsituation,congsituation)
-            #初期化
-            mes.sound_count = 0
-            mes.DB_count = 0
-            
-        root.update_idletasks()
-        root.update()
-        time.sleep(1)
 
 def soundmethod(color,temp,hum,cong): #警告ボイスを出すためのメソッド
     sound_number = [0]#ボイスを順番に流すための空の配列

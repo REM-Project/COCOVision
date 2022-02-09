@@ -8,7 +8,7 @@ import subprocess
 import os
 import signal
 
-import psutil
+#import psutil
 
 #ローカル（同階層）
 import GetDevicesInfo as DevicesInfo
