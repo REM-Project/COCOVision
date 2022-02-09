@@ -16,8 +16,8 @@ import datetime
 import threading
 import os
 import socket
-#import pygame
-#from mutagen.mp3 import MP3 as mp3
+import pygame
+from mutagen.mp3 import MP3 as mp3
 from datetime import timedelta
 import subprocess
 import StreamCamera
@@ -25,33 +25,42 @@ from multiprocessing import Process
 
 
 def main():
-    #画面定義
-
-    root = Tk()
-    root.title("室内環境")
-    root.attributes('-fullscreen', True)
-    root.geometry("1920x1080")
-
-    
-                                                                                                                                                                                                                                                                                                                                                                                                                                              
-
-
-
-
-
-
-
-
-    #変数定義
-    # データベースに送信する間隔（分単位）
-    send_interval=2
-
-
+    #グローバル定義
+    global CONFIG,ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,ROOT
     # 設定情報
     CONFIG=[]
     ROOM_NAME,NUM_CAMERA,HOST=None
+
+
+
+
+
+    #調整項目
+    # 初期待機時間（起動した時間+30秒）
+    START_INTERVAL_TIME = datetime.datetime.now()+timedelta(seconds=30)
+    # データベースに送信する間隔（分単位）
+    SEND_INTERVAL=2
+    # 警告を再生する間隔（分単位）
+    SOUND_INTERVAL=10
     # 混雑度（人数）受信時に利用するポート番号のテンプレート
     BASE_PORT=9000
+    # 各値の閾値（min~maxの順に配置、要素数を変える場合は適用されるif文も変更すること）
+    CO2_LEVEL=[1000,1500,2000]#それぞれの値以上で段階的に警告
+    TEMP_LEVEL=[18,28]#[0]未満、[1]超過で警告
+    HUMI_LEVEL=[40,70]#[0]未満、[1]超過で警告
+    CONG_LEVEL=[100]#[0]超過で警告
+    
+
+
+
+    #画面定義
+    ROOT = Tk()
+    ROOT.title("室内環境")
+    ROOT.attributes('-fullscreen', True)
+    ROOT.geometry("1920x1080")
+
+
+    #変数定義
     # データベース接続状態
     is_connect_db=False
     # カメラ利用状態
@@ -62,11 +71,11 @@ def main():
     # センサー値を取得した回数（データベースに送信する毎にリセット）
     count_get_values=0
     count_get_cong=0
-    #起動した時間+30秒
-    START_INTERVAL = datetime.datetime.now()+timedelta(seconds=30)
+
     # 最後にデータベースに送信した時間（or起動した時間）
     send_time = datetime.datetime.now()
-    
+    # 最後に音警告をした時間（or起動した時間）
+    sound_time=datetime.datetime.now()
 
 
 
@@ -82,6 +91,7 @@ def main():
         messagebox.showerror('IOError', 'COCOVision.configが見つかりません。COCOVision-setup.pyを実行してください。')
         sys.exit(str(e))
 
+    #カメラ台数が0台ならOFF
     if(NUM_CAMERA>0):
         is_stream_cam=True
     else:
@@ -95,20 +105,22 @@ def main():
     #データベース接続・部屋情報取得
     is_connect_db,room_capacity,table_name,room_id=get_room_info(ROOM_NAME,HOST)
 
-
-
+    #ディスプレイ初期化
+    display(datetime.datetime.now(),0,0,0,0)
+    #時間更新
+    th_d_date = threading.Thread(target=display_datetime)
+    th_d_date.start()
 
 
 
     #メインストリーム
     while True:
+
         now_datetime=datetime.datetime.now()
-        th_display = threading.Thread(target=display)
-        th_display.start()
         #センサー値取得
         co2,temp,humi=0
         #データベース送信用に格納(最初の30秒は格納しない)
-        if(now_datetime>=START_INTERVAL):
+        if(now_datetime>=START_INTERVAL_TIME):
             co2,temp,humi=get_value()
             sum_co2+=co2
             sum_temp+=temp
@@ -118,17 +130,22 @@ def main():
         #混雑度取得
         cong=-2
         if(is_stream_cam and is_connect_db):
-            cong=get_cong(HOST,BASE_PORT,room_id,room_capacity)
+            cong=get_cong(room_id,room_capacity)
             if(cong!=-1):
                 sum_cong+=cong
                 count_get_cong+=1
 
+        #画面更新
+        display(now_datetime,co2,temp,humi,cong)
 
-        #画面出力
-        display(root,now_datetime,co2,temp,humi,cong,is_stream_cam)
+        #音出力
+        if(now_datetime>=sound_time+timedelta(minutes=SOUND_INTERVAL)):
+            soundmethod(co2,temp,humi,cong)
+            sound_time=now_datetime
+        
 
-
-        if(now_datetime>=(send_time+timedelta(minutes=send_interval))):
+        #データベースに送信
+        if(now_datetime>=(send_time+timedelta(minutes=SEND_INTERVAL))):
             #記録時間
             rec_time=now_datetime.strftime("%Y-%m-%d %H:%M:00")
             #平均値算出
@@ -139,20 +156,66 @@ def main():
 
             #データベースの接続に失敗していた場合
             if(not is_connect_db):
-                is_connect_db,room_capacity,table_name,room_id=get_room_info(ROOM_NAME,HOST)
+                is_connect_db,room_capacity,table_name,room_id=get_room_info()
             if(is_connect_db):
                 #データベースに送信
                 is_send=send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong)
                 if(is_send):
                     sum_co2,sum_temp,sum_humi,sum_cong,count_get_values,count_get_cong=0
-                    
-                
 
 
-def display(root,now_datetime,co2,temp,humi,cong):
+
+def judge_level(co2,temp,humi,cong):
+    j_co2,j_temp,j_humi,j_cong=0
+
+    for i in range(len(CO2_LEVEL)):
+        if(CO2_LEVEL[i] <= co2):
+            j_co2=i+1
+    
+    if(temp<TEMP_LEVEL[0]):
+        j_temp=-1
+    elif(TEMP_LEVEL[1]<temp):
+        j_temp=1
+
+    if(humi<HUMI_LEVEL[0]):
+        j_humi=-1
+    elif(HUMI_LEVEL[1]<humi):
+        j_humi=1
+
+    if(cong<0):
+        j_cong=-1
+    elif(CONG_LEVEL[0]<cong):
+        j_cong=1
+    
+    return j_co2,j_temp,j_humi,j_cong
+
+    
+def display_datetime():
+    now_datetime=datetime.datetime.now()
+    datefont = font.Font(family="MSゴシック",size=30)
+    todaylabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
+    nowlabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
+    todaydate = "日時：" + str(0) + "年" + str(0) + "月" + str(0) + "日"
+    nowdate = "時刻：" + str(0) + "時" + str(0) + "分" + str(0) + "秒"
+    todaylabel.place(x=1320, y=890)
+    nowlabel.place(x=1320, y=950)
+    
+
+    todaydate = "日時：" + str(now_datetime.year) + "年" + str(now_datetime.month) + "月" + str(now_datetime.day) + "日"
+    todaylabel["text"] = todaydate 
+
+    nowtime = "時刻：" + str(now_datetime.hour) + "時" + str(now_datetime.minute) + "分" + str(now_datetime.second) + "秒" #時刻は毎秒更新
+    nowlabel["text"] = nowtime 
+
+    ROOT.update_idletasks()
+    ROOT.update()
+
+
+
+def display(now_datetime,co2,temp,humi,cong):
     #画面定義
 
-    canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
+    canvas = tkinter.Canvas(ROOT, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
     canvas.place(x=0, y=0) #canvas設置
 
     #左側の四角描画
@@ -172,12 +235,12 @@ def display(root,now_datetime,co2,temp,humi,cong):
 
     #ラベル定義と設置(これがないとwhile文のplace_forget()でエラーがでる)
     messagetext = tkinter.StringVar(value = "初期設定中")
-    co2label = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    templabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    humlabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    conglabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
-    todaylabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
-    nowlabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
+    co2label = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
+    templabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
+    humlabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
+    conglabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
+    todaylabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
+    nowlabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
     todaydate = "日時：" + str(0) + "年" + str(0) + "月" + str(0) + "日"
     nowdate = "時刻：" + str(0) + "時" + str(0) + "分" + str(0) + "秒"
     co2label.place(x=400,y=250)
@@ -188,11 +251,11 @@ def display(root,now_datetime,co2,temp,humi,cong):
     nowlabel.place(x=1320, y=950)
 
     #CO2, 温度, 湿度, メッセージ表示
-    label_1 = ttk.Label(root,text='CO2', font=fontStyle, background='white', anchor="w" )
-    label_2 = ttk.Label(root,text='温度', font=fontStyle, background='white', anchor="w" )
-    label_3 = ttk.Label(root,text='湿度', font=fontStyle, background='white', anchor="w" )
-    label_4 = ttk.Label(root,text='混雑度', font=fontStyle, background='white', anchor="w" )
-    messagelabel = ttk.Label(root, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
+    label_1 = ttk.Label(ROOT,text='CO2', font=fontStyle, background='white', anchor="w" )
+    label_2 = ttk.Label(ROOT,text='温度', font=fontStyle, background='white', anchor="w" )
+    label_3 = ttk.Label(ROOT,text='湿度', font=fontStyle, background='white', anchor="w" )
+    label_4 = ttk.Label(ROOT,text='混雑度', font=fontStyle, background='white', anchor="w" )
+    messagelabel = ttk.Label(ROOT, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
     label_1.place(x=70, y=250)
     label_2.place(x=70, y=380)
     label_3.place(x=70, y=510)
@@ -210,20 +273,6 @@ def display(root,now_datetime,co2,temp,humi,cong):
 
 
 
-    def textlocation(canvas,messagetext,msg_co2,msg_temp,msg_humi,msg_cong):
-        if(normal != ""):
-            messagetext.set(normal)
-        else:
-            messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
-        canvas.itemconfigure("mestext", text=messagetext.get())
-        text_size = canvas.bbox(text_id)
-        mestext_x = text_size[0] + (text_size[2] - text_size[0]) / 2
-        mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
-        canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
-
-    #if(oldco2 == mes.co2) and (oldtemp == mes.temp) and (oldhum == mes.hum): #センサーの値が更新されていないときに、ラベルが同じ値のまま更新されるのを防ぐために配置
-    #        pass
-    #else: #センサーの値が更新されたときに以下を実行しラベルの再設置
     co2label["text"] = str(co2) + "ppm" 
     templabel["text"] = str(round(temp, 1)) + "℃"
     humlabel["text"] = str(round(humi , 1)) + "%"
@@ -233,121 +282,88 @@ def display(root,now_datetime,co2,temp,humi,cong):
         conglabel["text"] = "計測失敗"
     else:
         conglabel["text"] = str(round(cong,1)) + "%"
-#        oldco2 = mes.co2 #oldco2に現在のCO2濃度を格納
-#        oldtemp = mes.temp
-#        oldhum = mes.hum
-#        oldcong = mes.congdata
-    #設置されてある日時ラベル削除,設定,設置
-#    if(olddate == now_datetime.today):#日付は更新されたタイミングで表示
-#        pass
-#    else:
+
+
     todaydate = "日時：" + str(now_datetime.year) + "年" + str(now_datetime.month) + "月" + str(now_datetime.day) + "日"
     todaylabel["text"] = todaydate 
-    olddate = now_datetime.today
-    
+
     nowtime = "時刻：" + str(now_datetime.hour) + "時" + str(now_datetime.minute) + "分" + str(now_datetime.second) + "秒" #時刻は毎秒更新
     nowlabel["text"] = nowtime 
+
+    j_co2,j_temp,j_humi,j_cong=judge_level(co2,temp,humi,cong)
     #CO2濃度によって枠線の色を変更
-    if (co2 >= 1000) and (co2 < 1500) :
+    if (j_co2==1) :
         canvas.itemconfigure("rect" ,outline="Orange")
-        co2save = "\n換気を行ってください"
-        textlocation()
+        msg_co2 = "\n換気を行ってください"
         co2label["foreground"] = '#ff0033'
-    elif(co2 >= 1500) and (co2 < 2000):
+    elif(j_co2==2):
         canvas.itemconfigure("rect" ,outline="Red")
         msg_co2 = "\n換気を行ってください"
-        textlocation()
         co2label["foreground"] = '#ff0033'
-    elif(co2 >= 2000):
+    elif(j_co2==3):
         canvas.itemconfigure("rect" ,outline="Purple")
         msg_co2 = "\n今すぐ換気してください"
-        textlocation()
         co2label["foreground"] = '#ff0033'
     else:
         canvas.itemconfigure("rect" ,outline="#009D5B")
         msg_co2 = ""
-        textlocation()
         co2label["foreground"] = '#000000'
 
-    if(mes.temp < 18) and (tempsituation != 1 ):
-        mes.tempsave = "\n暖房してください"
-        textlocation()
+
+    if(j_temp==-1):
+        msg_temp = "\n暖房してください"
         templabel["foreground"] = '#0066cc'
-        tempsituation = 1
-    elif(mes.temp > 28) and (tempsituation != 2 ):
-        mes.tempsave = "\n冷房してください"
-        textlocation()
+    elif(j_temp==1):
+        msg_temp = "\n冷房してください"
         templabel["foreground"] = '#ff0033'
-        tempsituation = 2
-    elif(mes.temp >= 18) and (mes.temp <= 28) and (tempsituation != 0):
-        mes.tempsave = ""
-        textlocation()
-        tempsituation = 0
+    else:
+        msg_temp = ""
         templabel["foreground"] = '#000000'
         
-    if(mes.hum < 40) and (humsituation != 1 ):
-        mes.humsave = "\n加湿してください"
-        textlocation()
+
+    if(j_humi==-1):
+        msg_humi = "\n加湿してください"
         humlabel["foreground"] = '#0066cc'
-        humsituation = 1
-    elif(mes.hum > 70) and (humsituation != 2):
-        mes.humsave = "\n除湿してください"
-        textlocation()
+    elif(j_humi==1):
+        msg_humi = "\n除湿してください"
         humlabel["foreground"] = '#ff0033'
-        humsituation = 2
-    elif(mes.hum >= 40) and (mes.hum <= 70) and (humsituation != 0):
-        mes.humsave = ""
-        textlocation()
-        humsituation = 0
+    else:
+        msg_humi = ""
         humlabel["foreground"] = '#000000'
         
-    if(mes.congdata > 100) and (congsituation == 0):
-        savesituation()
-        mes.congsave = "\n収容人数を超過しています"
-        textlocation()
+
+    if(j_cong==1):
+        msg_cong = "\n収容人数を超過しています"
         conglabel["foreground"] = '#ff0033'
-        congsituation = 1
-    elif(mes.congdata <= 100) and (congsituation == 1):
-        mes.congsave = ""
-        textlocation()
-        congsituation = 0
+    else:
+        msg_cong = ""
         conglabel["foreground"] = '#000000'
     
-    if(mes.co2 <= 999) and (mes.temp >= 18) and (mes.temp <= 28) and (mes.hum >= 40) and (mes.hum <=70):
+    if(j_co2==j_temp==j_humi==0 and j_cong<=0):
         normal = "\n正常値です"
-        textlocation()
-    elif(normal == "\n正常値です"):
+    elif(now_datetime<START_INTERVAL_TIME):
         normal = ""
-        textlocation()
         
-    if(mes.sound_count == 5): #約10分経過後
-        if(int(rectanglecolor)+int(tempsituation)+int(humsituation)+int(congsituation)!=0): #いずれかに警告が必要な場合
-            #左から(co2,温度,湿度,人数)の「状態を表す数値」を示している
-            soundmethod(rectanglecolor,tempsituation,humsituation,congsituation)
-        #初期化
-        mes.sound_count = 0
-        mes.DB_count = 0
-        
-    root.update_idletasks()
-    root.update()
-    time.sleep(1)
 
+    if(now_datetime<=START_INTERVAL_TIME):
+        tkinter.StringVar(value = "初期設定中")
+    elif(normal != ""):
+        messagetext.set(normal)
+    else:
+        messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
 
+    canvas.itemconfigure("mestext", text=messagetext.get())
+    text_size = canvas.bbox(text_id)
+    mestext_x = text_size[0] + (text_size[2] - text_size[0]) / 2
+    mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
+    canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
 
-
-
-
-
-
-
-
-
-
-
+    ROOT.update_idletasks()
+    ROOT.update()
 
 
 #データベース接続（直接は呼び出さない）
-def connect_db(HOST):
+def connect_db():
     try: #mysqlデータベースに接続
         print("DB access....")
         connection = pymysql.connect(host=HOST,
@@ -360,8 +376,8 @@ def connect_db(HOST):
         print("DB access error")
         return False,None
 
-def get_room_info(ROOM_NAME,HOST):
-    is_connected,connection=connect_db(HOST)
+def get_room_info():
+    is_connected,connection=connect_db()
     if(is_connected):
         cursor = connection.cursor()
         try:
@@ -391,10 +407,11 @@ def get_value():
     scd4x.start_periodic_measurement()
     print("Waiting for first measurement....")
 
-    return scd4x.CO2,scd4x.temperature,scd4x.relative_humidity
+    co2,temp,humi=scd4x.CO2,scd4x.temperature,scd4x.relative_humidity
+    return co2,temp,humi
 
 
-def get_cong(HOST,BASE_PORT,room_id,room_capacity):
+def get_cong(room_id,room_capacity):
     cong=-1
     try:
         portsoc = BASE_PORT + int(room_id)
@@ -411,20 +428,27 @@ def get_cong(HOST,BASE_PORT,room_id,room_capacity):
 
 
 
-def soundmethod(color,temp,hum,cong): #警告ボイスを出すためのメソッド
+def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッド
+    
     sound_number = [0]#ボイスを順番に流すための空の配列
-    #それぞれがどの値を示しているかを区別するために値を足す(以下の○には1の位が当てはまる)
-    color += 10 #co2に関する値:1○
-    temp += 20 #気温に関する値:2○
-    hum += 30 #湿度に関する値:3○
-    cong += 40 #人数に関する値:4○
-    situation = [color,temp,hum,cong]#ループ式で異常な値であるか確認するために配列に格納する
-    for a in situation:
-        if(a%10 != 0):#aが異常な値を示している(0＋10の倍数ではない)時にsound_numberという配列に格納する
-            if(a == 11 or a == 12):#co2が1000以上2000以下のときは同じボイスを流す
-                sound_number.append(11)
-            else:#それ以外はそのままsound_numberに格納する
-                sound_number.append(a)
+    j_list=judge_level(co2,temp,hum,cong)
+
+    if(j_list[0]==3):
+        sound_number.append(12)
+    elif(j_list[0]>=1):
+        sound_number.append(11)
+    
+    cast_num=[1,0,0,2]#-1 -> 1 , 1 -> 2
+    plus=20
+    inc=10
+    for judge in j_list:
+        if(judge!=0):
+            num=cast_num[judge+plus]
+            sound_number.append()
+        plus+=inc
+    
+    print(sound_number)#debug
+
     for a in sound_number:#ボイスを順番に流す
         filename = 'sound/sound'+str(a)+'.mp3' #再生したいmp3ファイル(ボイスの詳細はsoundファイル内のconfigにある)
         print(str(filename))
