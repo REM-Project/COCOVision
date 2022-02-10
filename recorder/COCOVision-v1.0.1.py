@@ -26,11 +26,17 @@ from multiprocessing import Process
 
 def main():
     #グローバル定義
-    global CONFIG,ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,ROOT
+    global ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,ROOT
     # 設定情報
-    CONFIG=[]
     ROOM_NAME,NUM_CAMERA,HOST="","",""
-
+    config=[]
+    try:
+        with open("COCOVision.config", "r",encoding="utf-8") as f:
+            config=f.read().splitlines()
+        ROOM_NAME,NUM_CAMERA,HOST=config
+    except IOError as e:
+        messagebox.showerror('IOError', 'COCOVision.configが見つかりません。COCOVision-setup.pyを実行してください。')
+        sys.exit(str(e))
 
 
 
@@ -58,8 +64,7 @@ def main():
     cong=-2
     th_bg= threading.Thread(target=background)
     th_bg.start()
-    time.sleep(1)
-    
+    time.sleep(3)
     
     display()
     
@@ -120,6 +125,9 @@ def background():
 
     #データベース接続・部屋情報取得
     is_connect_db,room_capacity,table_name,room_id=get_room_info()
+    
+    
+    socket1 = connect_socket(room_id)
 
     while True:
         now_datetime=datetime.datetime.now()
@@ -133,7 +141,7 @@ def background():
             count_get_values+=1
 
         if(is_stream_cam and is_connect_db):
-            cong=get_cong(room_id,room_capacity)
+            cong,socket1=get_cong(socket1,room_id,room_capacity)
             if(cong!=-1):
                 sum_cong+=cong
                 count_get_cong+=1
@@ -257,6 +265,7 @@ def display():
     #画面定義終わり
     
     while True:
+        time.sleep(0.1)
         now_datetime=datetime.datetime.now()
         
         msg_co2,msg_temp,msg_humi,msg_cong,normal="","","","",""
@@ -414,21 +423,25 @@ def get_value(scd4x):
     return co2,temp,humi
 
 
-def get_cong(room_id,room_capacity):
+def get_cong(socket1,room_id,room_capacity):
     cong=-1
+    skt1 = socket1 
     try:
-        portsoc = BASE_PORT + int(room_id)
-        serversoc = (HOST, portsoc)
-        socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        socket1.connect(serversoc)
-        if socket.recv(4096).decode()!=-1: #人数が測定不能(-1)でないとき
-            cong = (float(socket.recv(4096).decode()) / float(room_capacity))*100 #混雑度(%)を代入
-    except:
-        print("timed out")
+        num_people=int(socket1.recv(4096).decode())
+        if num_people!=-1: #人数が測定不能(-1)でないとき
+            cong = (float(num_people) / float(room_capacity))*100 #混雑度(%)を代入
+    except Exception as e:
+        print("timed out:"+str(e))
+        skt1 = connect_socket(room_id)
 
-    return cong
+    return cong,skt1
 
-
+def connect_socket(room_id):
+    portsoc = BASE_PORT + int(room_id)
+    serversoc = (HOST, portsoc)
+    socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket1.connect(serversoc)
+    return socket1
 
 
 def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッド
@@ -464,7 +477,7 @@ def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッ�
     sound_number.clear()
 
 def send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong):
-    is_connected,connection=connect_db(HOST)
+    is_connected,connection=connect_db()
     if(is_connected):
         try: #データベースに値を送信
             with connection.cursor() as cursor:

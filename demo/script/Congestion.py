@@ -30,6 +30,7 @@ def main():
 
     # デバイスIP、カメラ台数取得
     device_ips,num_cameras,ids=DevicesInfo.get_all()
+    print("DevicesInfo.get")
 
     # カメラ映像port
     #  ポート番号は指定した番号から始まり台数に応じて1ずつ連番で割り当てられる - 例 7900 ~ 7902
@@ -78,6 +79,7 @@ def main():
 
         # 中断されるまで待機（ループ）
         while True:
+            #print("STAY")
             pass
                     
     finally:
@@ -100,15 +102,16 @@ def exec_openpose(camera_addr,out_dir):
     print(out_dir)
 
     # 書き出し先のフォルダを中身ごと削除
-    if os.path.exists(out_dir):
-        shutil.rmtree(out_dir)
+    # if os.path.exists(out_dir):
+    #     shutil.rmtree(out_dir)
     # 書き出し先のフォルダを生成
     os.makedirs(out_dir, exist_ok=True)
 
-    cmd=["bash","OpenPoseIpCamToJson.sh",camera_addr,out_dir]
+    cmd=["bash","../script/OpenPoseIpCamToJson.sh",camera_addr,out_dir]
 
+    print(os.getcwd())
     try:
-        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd=os.getcwd())
+        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd="../openpose")
     except Exception as e:
         print("noop")
         print(e)

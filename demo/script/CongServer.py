@@ -2,7 +2,6 @@
 #混雑度-検出人数送信(サーバー側)
 #SendCongestion.pyより呼び出し想定
 
-from http import client
 import json
 import sys
 import time
@@ -56,8 +55,7 @@ def main(device_ip,port,num_camera):
                         answer+=peo
                     except:
                         print("検出失敗 - 対象:",dir)
-                        answer=str(-1)
-                    
+                        answer=-1
                 sendline = str(answer).encode('utf-8')
                 print('検出人数：'+str(answer)+'人')
                 connection.send(sendline)

@@ -1,19 +1,19 @@
 version: '3.8'
 services:
-  openpose:
-    build:
-      context: .
-      dockerfile: ./openpose/Dockerfile
-    #カメラ読み込み
-    # devices:
-    #   - "/dev/video0:/dev/video0"
-    volumes:
-      #ディレクトリリンク
-      - ./openpose/script:/usr/local/script/
-    ports: #ホスト側ポート：インスタンス側ポート
-      - 7900:7900
-      - 9001:9001
-    stdin_open: true
+  # openpose:
+  #   build:
+  #     context: .
+  #     dockerfile: ./openpose/Dockerfile
+  #   #カメラ読み込み
+  #   # devices:
+  #   #   - "/dev/video0:/dev/video0"
+  #   volumes:
+  #     #ディレクトリリンク
+  #     - ./openpose/script:/usr/local/script/
+  #   ports: #ホスト側ポート：インスタンス側ポート
+  #     - 7900:7900
+  #     - 9001:9001
+  #   stdin_open: true
 
   php:
     build: ./php/

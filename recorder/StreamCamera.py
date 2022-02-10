@@ -11,14 +11,14 @@ import psutil
 #メインストリーム
 def main():
     #初期定義
-    # このファイルのディレクトリpath
-    path=os.path.dirname(__file__)
+    try:
+        # このファイルのディレクトリpath
+        path=os.path.dirname(__file__)
 
-    # python3.9以前用に相対パスから絶対パスに変換
-    path=os.path.abspath(path)
-
-    # カレントディレクトリをこのファイルがあるディレクトリに変更
-    os.chdir(path)
+        # カレントディレクトリをこのファイルがあるディレクトリに変更
+        os.chdir(path)
+    except Exception as e:
+        print(e)
     # 子プロセス捕捉用
     popen=[]
     
@@ -36,7 +36,8 @@ def main():
     CAMERA_FIRST_PORT=7900
 
     # コーデック
-    codec="libx264"
+    #codec="libx264"
+    codec="h264_omx"
 
 
     # 必ずfinallyを実行させるための呪腹
@@ -55,7 +56,8 @@ def main():
             cmd=["bash","rstpCam.sh",str(camera_dir),str(codec),str(camera_port)]
             print(cmd)
             
-            p=subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
+            #p=subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
+            p=subprocess.Popen(args=cmd)
             print(p.pid)
             # 終了させるために格納
             popen.append(p)
