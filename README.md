@@ -22,7 +22,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
   * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。~~（2/8 削除未対応）~~（2/14 削除対応）
 
 * ### 2/14
-  * 全動作確認・コメント文を追加したバージョン（v.1.0.4）をアップロードしました。[Releases](/releases/)からダウンロードして下さい。
+  * 全動作確認・コメント文を追加したバージョン（v.1.0.4）をアップロードしました。[Releases](https://github.com/REM-Project/COCOVision/releases/)からダウンロードして下さい。
 
 # 実行
 ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
