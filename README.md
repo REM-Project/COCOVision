@@ -19,8 +19,10 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
   * [recorder](recorder)内に計測デバイス（Raspberry Pi 3 / 4）のコードを追加しました。
   * [COCOVision.py](recorder/COCOVision.py)を実行すると計測が開始されます。
   * [COCOVision-setup.py](recorder/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/COCOVision.config)を直接書き換えてください。
-  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録できます。（2/8 削除未対応）
+  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。~~（2/8 削除未対応）~~（2/14 削除対応）
 
+* ### 2/14
+  * 全動作確認・コメント文を追加したバージョン（v.1.0.4）をアップロードしました。
 
 # 実行
 ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
