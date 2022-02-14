@@ -6,7 +6,7 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __date__    = "2022/2/14"
 
 
@@ -268,7 +268,7 @@ def display():
         templabel["text"] = str(round(temp, 1)) + "℃"
         humlabel["text"] = str(round(humi , 1)) + "%"
         if(cong==-2):
-            conglabel["text"] = "計測不可"
+            conglabel["text"] = "計測停止"
         elif(cong==-1):
             conglabel["text"] = "計測失敗"
         else:
