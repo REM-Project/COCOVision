@@ -1,3 +1,17 @@
+#COCOVision.py
+# Raspberry Piで実行する際、Terminalから実行すること（Thonyで停止した際カメラプロセスが停止できないため）
+# 
+# v1.0.x
+#  scd40よりセンサー値取得、カメラ映像送信（StreamCamera.py）、混雑度受信、データベースへ送信、画面描画、閾値警告（画面・音声）
+
+__author__ = "REM-Project <remprojectpbl@gmail.com>"
+__status__ = "COCOVision"
+__version__ = "1.0.4"
+__date__    = "2022/2/14"
+
+
+
+
 from itertools import count
 import sys
 import time
@@ -422,26 +436,7 @@ def get_room_info():
         return False,None,None,None
 
 
-#データベースへ送信（connect_db()呼出）
-def send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong):
-    is_connected,connection=connect_db()
-    if(is_connected):
-        try: #データベースに値を送信
-            with connection.cursor() as cursor:
-                sql = "INSERT INTO "+table_name+"(rec_time,co2,temp,humi,cong) VALUES(%(time)s,%(co2)s,%(temp)s,%(humi)s,%(cong)s);"
-                into = {'time':str(rec_time),'co2':avg_co2,'temp':avg_temp,'humi':avg_humi,'cong':avg_cong}
-                cursor.execute(sql,into)
-                connection.commit()
-                cursor.close()
-                print("Data commited.")
-                return True
-        except: #送信に失敗したらエラーメッセージ
-            print("送信エラー")
-            os.system('echo 1 | sudo tee /proc/sys/vm/drop_caches>/dev/null')
-            return False
-    else:
-        return False
-
+#センサー値取得
 def get_value(scd4x):
     co2=-1
     temp=-1
@@ -464,6 +459,7 @@ def get_value(scd4x):
     return co2,temp,humi
 
 
+#閾値判定
 def judge_level(co2,temp,humi,cong):
     j_co2,j_temp,j_humi,j_cong=0,0,0,0
 
@@ -489,7 +485,29 @@ def judge_level(co2,temp,humi,cong):
     return j_co2,j_temp,j_humi,j_cong
 
 
-def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッド
+#データベースへ送信（connect_db()呼出）
+def send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong):
+    is_connected,connection=connect_db()
+    if(is_connected):
+        try: #データベースに値を送信
+            with connection.cursor() as cursor:
+                sql = "INSERT INTO "+table_name+"(rec_time,co2,temp,humi,cong) VALUES(%(time)s,%(co2)s,%(temp)s,%(humi)s,%(cong)s);"
+                into = {'time':str(rec_time),'co2':avg_co2,'temp':avg_temp,'humi':avg_humi,'cong':avg_cong}
+                cursor.execute(sql,into)
+                connection.commit()
+                cursor.close()
+                print("Data commited.")
+                return True
+        except: #送信に失敗したらエラーメッセージ
+            print("送信エラー")
+            os.system('echo 1 | sudo tee /proc/sys/vm/drop_caches>/dev/null')
+            return False
+    else:
+        return False
+
+
+#警告音出力
+def soundmethod(co2,temp,hum,cong):
     
     sound_number = [0]#ボイスを順番に流すための空の配列
     j_list=judge_level(co2,temp,hum,cong)
