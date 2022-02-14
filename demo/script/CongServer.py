@@ -44,6 +44,7 @@ def main(device_ip,port,num_camera):
 
             while True:
                 answer=0
+                misstake=0
                 for num in range(num_camera):
                     dir=base_dir+str(num)+"/"
                     max_json_number=int(sum(os.path.isfile(os.path.join(dir,name)) for name in os.listdir(dir)))-1
@@ -55,11 +56,16 @@ def main(device_ip,port,num_camera):
                         answer+=peo
                     except:
                         print("検出失敗 - 対象:",dir)
-                        answer=-1
+                        misstake+=1
+
+                #全カメラが取得失敗した場合
+                if(misstake==num_camera):
+                    answer=-1
+
                 sendline = str(answer).encode('utf-8')
                 print('検出人数：'+str(answer)+'人')
                 connection.send(sendline)
-                time.sleep(5)
+                time.sleep(3)
             # クローズ
             connection.close()
             socket1.close()
