@@ -181,7 +181,6 @@ def background():
 
 #画面描画
 def display():
-    global now_datetime,co2,temp,humi,cong
     #画面定義
     root = Tk()
     root.title("室内環境")
@@ -239,14 +238,17 @@ def display():
 
     canvas.move(text_id, mesrect_x, mesrect_y)
 
-
     #画面定義終わり
+
+    #変数定義
+    global now_datetime,co2,temp,humi,cong
+    old_j_co2,old_j_temp,old_j_humi,old_j_cong=-100,-100,-100,-100
+    msg_co2,msg_temp,msg_humi,msg_cong,normal="","","","",""
     
     while True:
         time.sleep(0.1)
         now_datetime=datetime.datetime.now()
         
-        msg_co2,msg_temp,msg_humi,msg_cong,normal="","","","",""
 
         co2label["text"] = str(co2) + "ppm" 
         templabel["text"] = str(round(temp, 1)) + "℃"
@@ -269,15 +271,15 @@ def display():
 
         j_co2,j_temp,j_humi,j_cong=judge_level(co2,temp,humi,cong)
         #CO2濃度によって枠線の色を変更
-        if (j_co2==1) :
+        if (j_co2==1 and j_co2!=old_j_co2)  :
             canvas.itemconfigure("rect" ,outline="Orange")
             msg_co2 = "\n換気を行ってください"
             co2label["foreground"] = '#ff0033'
-        elif(j_co2==2):
+        elif(j_co2==2 and j_co2!=old_j_co2):
             canvas.itemconfigure("rect" ,outline="Red")
             msg_co2 = "\n換気を行ってください"
             co2label["foreground"] = '#ff0033'
-        elif(j_co2==3):
+        elif(j_co2==3 and j_co2!=old_j_co2):
             canvas.itemconfigure("rect" ,outline="Purple")
             msg_co2 = "\n今すぐ換気してください"
             co2label["foreground"] = '#ff0033'
@@ -286,48 +288,58 @@ def display():
             msg_co2 = ""
             co2label["foreground"] = '#000000'
 
+        old_j_co2=j_co2
 
-        if(j_temp==-1):
+
+        if(j_temp==-1 and j_temp!=old_j_temp):
             msg_temp = "\n暖房してください"
             templabel["foreground"] = '#0066cc'
-        elif(j_temp==1):
+        elif(j_temp==1 and j_temp!=old_j_temp):
             msg_temp = "\n冷房してください"
             templabel["foreground"] = '#ff0033'
         else:
             msg_temp = ""
             templabel["foreground"] = '#000000'
             
+        old_j_temp=j_temp
 
-        if(j_humi==-1):
+
+        if(j_humi==-1 and j_humi!=old_j_humi):
             msg_humi = "\n加湿してください"
             humlabel["foreground"] = '#0066cc'
-        elif(j_humi==1):
+        elif(j_humi==1 and j_humi!=old_j_humi):
             msg_humi = "\n除湿してください"
             humlabel["foreground"] = '#ff0033'
         else:
             msg_humi = ""
             humlabel["foreground"] = '#000000'
-            
 
-        if(j_cong==1):
+        old_j_humi=j_humi
+
+
+        if(j_cong==1 and j_cong!=old_j_cong):
             msg_cong = "\n収容人数を超過しています"
             conglabel["foreground"] = '#ff0033'
         else:
             msg_cong = ""
             conglabel["foreground"] = '#000000'
         
-        if(j_co2==j_temp==j_humi==0 and j_cong<=0):
+        old_j_cong=j_cong
+
+
+        if(j_co2==j_temp==j_humi==0 and j_cong<=0 and normal == ""):
             normal = "\n正常値です"
-        elif(now_datetime<START_INTERVAL_TIME):
+        else:
             normal = ""
             
 
-        if(now_datetime<=START_INTERVAL_TIME):
-            tkinter.StringVar(value = "初期設定中")
-        elif(normal != ""):
-            messagetext.set(normal)
-        else:
+        # if(now_datetime<=START_INTERVAL_TIME):
+        #     tkinter.StringVar(value = "初期設定中")
+        # el
+        if(normal == ""):
             messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
+        else:
+            messagetext.set(normal)
 
         canvas.itemconfigure("mestext", text=messagetext.get())
         text_size = canvas.bbox(text_id)
@@ -452,9 +464,6 @@ def get_value(scd4x):
     return co2,temp,humi
 
 
-
-
-
 def judge_level(co2,temp,humi,cong):
     j_co2,j_temp,j_humi,j_cong=0,0,0,0
 
@@ -478,20 +487,6 @@ def judge_level(co2,temp,humi,cong):
         j_cong=1
     
     return j_co2,j_temp,j_humi,j_cong
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッド
@@ -527,6 +522,7 @@ def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッ�
     sound_number.clear()
 
 
-    
+
+
 if __name__=="__main__":
     main()
