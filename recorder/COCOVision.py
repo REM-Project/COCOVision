@@ -1,7 +1,3 @@
-#https://zenn.dev/wok/scraps/a2b5839326c7e7
-
-
-
 from itertools import count
 import sys
 import time
@@ -19,17 +15,27 @@ import socket
 import pygame
 from mutagen.mp3 import MP3 as mp3
 from datetime import timedelta
-import subprocess
 import StreamCamera
 from multiprocessing import Process
 
 
 def main():
-    #グローバル定義
-    global ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,ROOT
-    # 設定情報
+    #初期定義
+    # グローバル定義
+    global ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL
+
+    # このファイルのディレクトリpath
+    path=os.path.dirname(__file__)
+    # python3.9以前用に相対パスから絶対パスに変換
+    path=os.path.abspath(path)
+    # カレントディレクトリをこのファイルがあるディレクトリに変更
+    os.chdir(path)
+
+    # 設定情報変数定義
     ROOM_NAME,NUM_CAMERA,HOST="","",""
     config=[]
+
+    #設定情報読み込み（失敗時強制終了）
     try:
         with open("COCOVision.config", "r",encoding="utf-8") as f:
             config=f.read().splitlines()
@@ -50,32 +56,38 @@ def main():
     # 混雑度（人数）受信時に利用するポート番号のテンプレート
     BASE_PORT=9000
     # 各値の閾値（min~maxの順に配置、要素数を変える場合は適用されるif文も変更すること）
-    CO2_LEVEL=[1000,1500,2000]#それぞれの値以上で段階的に警告
-    TEMP_LEVEL=[18,28]#[0]未満、[1]超過で警告
-    HUMI_LEVEL=[40,70]#[0]未満、[1]超過で警告
-    CONG_LEVEL=[100]#[0]超過で警告
+    CO2_LEVEL=[1000,1500,2000]      #それぞれの値以上で段階的に警告
+    TEMP_LEVEL=[18,28]              #[0]未満、[1]超過で警告
+    HUMI_LEVEL=[40,70]              #[0]未満、[1]超過で警告
+    CONG_LEVEL=[100]                #[0]超過で警告
     
-    #background
-    global now_datetime,co2,temp,humi,cong
+
+    #受け渡し用グローバル変数
+    global now_datetime,co2,temp,humi,cong#現在時刻、二酸化炭素濃度、温度、湿度、混雑度
     now_datetime=datetime.datetime.now()
-    co2=0
-    temp=0.0
-    humi=0.0
-    cong=-2
+    co2=0           #n(ppm)
+    temp=0.0        #n(℃)
+    humi=0.0        #n(%)
+    cong=-2         #カメラ不使用時:-2,計測失敗時:-1,計測成功時:n(%)
+
+    #バックグラウンド処理実行開始（センサー値取得、混雑度受信、データベースへ送信）
     th_bg= threading.Thread(target=background)
     th_bg.start()
     time.sleep(3)
     
+    #画面描画処理開始
     display()
     
-    #メインストリーム
+#バックグラウンド処理
 def background():
     global now_datetime,co2,temp,humi,cong
     #変数定義
     # データベース接続状態
-    is_connect_db=False
+    is_cennected_db=False
     # カメラ利用状態
     is_stream_cam=False
+    # ソケット通信状態
+    is_connected_socket=False
     # データベースに送信する合計値（送信時に平均化）(データベースに送信する毎にリセット)
     sum_co2=0.0
     sum_temp=0.0
@@ -90,8 +102,7 @@ def background():
     # 最後に音警告をした時間（or起動した時間）
     sound_time=datetime.datetime.now()
     
-    #センサーから値を出力するための記述
-    #global scd4x
+    #センサーから値を出力するための定義
     i2c = board.I2C()
     scd4x = adafruit_scd4x.SCD4X(i2c)
     print("Serial number:", [hex(i) for i in scd4x.serial_number])
@@ -99,20 +110,7 @@ def background():
     print("Waiting for first measurement....")
 
 
-    
-    #start
-    #COCOVision.configをロードしてCONFIGに格納（失敗時終了）
-    try:
-        with open("COCOVision.config", "r",encoding="utf-8") as f:
-            CONFIG=f.read().splitlines()
-        ROOM_NAME=CONFIG[0]
-        NUM_CAMERA=CONFIG[1]
-        HOST=CONFIG[2]
-    except IOError as e:
-        messagebox.showerror('IOError', 'COCOVision.configが見つかりません。COCOVision-setup.pyを実行してください。')
-        sys.exit(str(e))
-
-    #カメラ台数が0台ならOFF
+    #カメラ台数が1台以上ならON
     if(int(NUM_CAMERA)>0):
         is_stream_cam=True
     else:
@@ -124,10 +122,11 @@ def background():
         p.start()
 
     #データベース接続・部屋情報取得
-    is_connect_db,room_capacity,table_name,room_id=get_room_info()
+    is_cennected_db,room_capacity,table_name,room_id=get_room_info()
     
     
-    socket1 = connect_socket(room_id)
+    #ソケット通信接続
+    is_connected_socket,socket1 = connect_socket(room_id)
 
     while True:
         now_datetime=datetime.datetime.now()
@@ -140,14 +139,20 @@ def background():
             sum_humi+=humi
             count_get_values+=1
 
-        if(is_stream_cam and is_connect_db):
-            cong,socket1=get_cong(socket1,room_id,room_capacity)
-            if(cong!=-1):
-                sum_cong+=cong
-                count_get_cong+=1
 
-        #画面更新
-        #display(now_datetime,co2,temp,humi,cong)
+        if(room_id!=None):
+            #ソケット通信接続が切れている場合に再接続
+            if(not is_connected_socket):
+                is_connected_socket,socket1 = connect_socket(room_id)
+
+
+            #混雑度受信
+            if(is_stream_cam and is_connected_socket):
+                is_connected_socket,cong,socket1=get_cong(socket1,room_capacity)
+                if(cong!=-1):
+                    sum_cong+=cong
+                    count_get_cong+=1
+
 
         #音出力
         if(now_datetime>=sound_time+timedelta(minutes=SOUND_INTERVAL)):
@@ -166,51 +171,24 @@ def background():
             avg_cong=round(sum_cong/count_get_cong,3)
 
             #データベースの接続に失敗していた場合
-            if(not is_connect_db):
-                is_connect_db,room_capacity,table_name,room_id=get_room_info()
-            if(is_connect_db):
+            if(not is_cennected_db):
+                is_cennected_db,room_capacity,table_name,room_id=get_room_info()
+            if(is_cennected_db):
                 #データベースに送信
                 is_send=send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong)
                 if(is_send):
                     sum_co2,sum_temp,sum_humi,sum_cong,count_get_values,count_get_cong=0
 
-
-
-def judge_level(co2,temp,humi,cong):
-    j_co2,j_temp,j_humi,j_cong=0,0,0,0
-
-    for i in range(len(CO2_LEVEL)):
-        if(CO2_LEVEL[i] <= co2):
-            j_co2=i+1
-    
-    if(temp<TEMP_LEVEL[0]):
-        j_temp=-1
-    elif(TEMP_LEVEL[1]<temp):
-        j_temp=1
-
-    if(humi<HUMI_LEVEL[0]):
-        j_humi=-1
-    elif(HUMI_LEVEL[1]<humi):
-        j_humi=1
-
-    if(cong<0):
-        j_cong=-1
-    elif(CONG_LEVEL[0]<cong):
-        j_cong=1
-    
-    return j_co2,j_temp,j_humi,j_cong
-
-
-
+#画面描画
 def display():
     global now_datetime,co2,temp,humi,cong
     #画面定義
-    ROOT = Tk()
-    ROOT.title("室内環境")
-    ROOT.attributes('-fullscreen', True)
-    ROOT.geometry("1920x1080")
+    root = Tk()
+    root.title("室内環境")
+    root.attributes('-fullscreen', True)
+    root.geometry("1920x1080")
 
-    canvas = tkinter.Canvas(ROOT, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
+    canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
     canvas.place(x=0, y=0) #canvas設置
 
     #左側の四角描画
@@ -230,12 +208,12 @@ def display():
 
     #ラベル定義と設置(これがないとwhile文のplace_forget()でエラーがでる)
     messagetext = tkinter.StringVar(value = "初期設定中")
-    co2label = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
-    templabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
-    humlabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
-    conglabel = ttk.Label(ROOT,text = 0, font=fontStyle, background='white', anchor="w")
-    todaylabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
-    nowlabel = ttk.Label(ROOT,text="", font=datefont, background='white', anchor="w")
+    co2label = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    templabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    humlabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    conglabel = ttk.Label(root,text = 0, font=fontStyle, background='white', anchor="w")
+    todaylabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
+    nowlabel = ttk.Label(root,text="", font=datefont, background='white', anchor="w")
     todaydate = "日時：" + str(0) + "年" + str(0) + "月" + str(0) + "日"
     nowdate = "時刻：" + str(0) + "時" + str(0) + "分" + str(0) + "秒"
     co2label.place(x=400,y=250)
@@ -246,11 +224,11 @@ def display():
     nowlabel.place(x=1320, y=950)
 
     #CO2, 温度, 湿度, メッセージ表示
-    label_1 = ttk.Label(ROOT,text='CO2', font=fontStyle, background='white', anchor="w" )
-    label_2 = ttk.Label(ROOT,text='温度', font=fontStyle, background='white', anchor="w" )
-    label_3 = ttk.Label(ROOT,text='湿度', font=fontStyle, background='white', anchor="w" )
-    label_4 = ttk.Label(ROOT,text='混雑度', font=fontStyle, background='white', anchor="w" )
-    messagelabel = ttk.Label(ROOT, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
+    label_1 = ttk.Label(root,text='CO2', font=fontStyle, background='white', anchor="w" )
+    label_2 = ttk.Label(root,text='温度', font=fontStyle, background='white', anchor="w" )
+    label_3 = ttk.Label(root,text='湿度', font=fontStyle, background='white', anchor="w" )
+    label_4 = ttk.Label(root,text='混雑度', font=fontStyle, background='white', anchor="w" )
+    messagelabel = ttk.Label(root, text='メッセージ', font=messagefont, background='PaleGoldenrod', anchor="w")
     label_1.place(x=70, y=250)
     label_2.place(x=70, y=380)
     label_3.place(x=70, y=510)
@@ -357,13 +335,11 @@ def display():
         mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
         canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
 
-        ROOT.update_idletasks()
-        ROOT.update()
+        root.update_idletasks()
+        root.update()
 
 
-
-
-#データベース接続（直接は呼び出さない）
+#データベース接続（直接呼び出さない）
 def connect_db():
     try: #mysqlデータベースに接続
         print("DB access....")
@@ -376,7 +352,41 @@ def connect_db():
     except: #接続できなかったらエラー文
         print("DB access error")
         return False,None
+    
 
+#TCPソケット通信接続
+def connect_socket(room_id):
+    try:
+        portsoc = BASE_PORT + int(room_id)
+        serversoc = (HOST, portsoc)
+        socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket1.connect(serversoc)
+        return True,socket1
+    except:
+        print("ソケット通信接続失敗")
+        return False,None
+
+
+#混雑度受信:TCP
+def get_cong(socket1,room_capacity):
+    cong=-2
+    skt1 = socket1
+    is_connected_socket=True 
+    try:
+        #検出人数受信
+        num_people=int(socket1.recv(4096).decode())
+
+        #人数が測定不能(-1)でないとき混雑度(%)を代入
+        if num_people!=-1:
+            cong = (float(num_people) / float(room_capacity))*100
+        
+        return is_connected_socket,cong,skt1
+    except Exception as e:
+        print("timed out:"+str(e))
+        is_connected_socket=False
+        return is_connected_socket,cong,skt1
+
+#部屋情報取得（connect_db()呼出）
 def get_room_info():
     is_connected,connection=connect_db()
     if(is_connected):
@@ -400,6 +410,25 @@ def get_room_info():
         return False,None,None,None
 
 
+#データベースへ送信（connect_db()呼出）
+def send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong):
+    is_connected,connection=connect_db()
+    if(is_connected):
+        try: #データベースに値を送信
+            with connection.cursor() as cursor:
+                sql = "INSERT INTO "+table_name+"(rec_time,co2,temp,humi,cong) VALUES(%(time)s,%(co2)s,%(temp)s,%(humi)s,%(cong)s);"
+                into = {'time':str(rec_time),'co2':avg_co2,'temp':avg_temp,'humi':avg_humi,'cong':avg_cong}
+                cursor.execute(sql,into)
+                connection.commit()
+                cursor.close()
+                print("Data commited.")
+                return True
+        except: #送信に失敗したらエラーメッセージ
+            print("送信エラー")
+            os.system('echo 1 | sudo tee /proc/sys/vm/drop_caches>/dev/null')
+            return False
+    else:
+        return False
 
 def get_value(scd4x):
     co2=-1
@@ -423,25 +452,46 @@ def get_value(scd4x):
     return co2,temp,humi
 
 
-def get_cong(socket1,room_id,room_capacity):
-    cong=-1
-    skt1 = socket1 
-    try:
-        num_people=int(socket1.recv(4096).decode())
-        if num_people!=-1: #人数が測定不能(-1)でないとき
-            cong = (float(num_people) / float(room_capacity))*100 #混雑度(%)を代入
-    except Exception as e:
-        print("timed out:"+str(e))
-        skt1 = connect_socket(room_id)
 
-    return cong,skt1
 
-def connect_socket(room_id):
-    portsoc = BASE_PORT + int(room_id)
-    serversoc = (HOST, portsoc)
-    socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket1.connect(serversoc)
-    return socket1
+
+def judge_level(co2,temp,humi,cong):
+    j_co2,j_temp,j_humi,j_cong=0,0,0,0
+
+    for i in range(len(CO2_LEVEL)):
+        if(CO2_LEVEL[i] <= co2):
+            j_co2=i+1
+    
+    if(temp<TEMP_LEVEL[0]):
+        j_temp=-1
+    elif(TEMP_LEVEL[1]<temp):
+        j_temp=1
+
+    if(humi<HUMI_LEVEL[0]):
+        j_humi=-1
+    elif(HUMI_LEVEL[1]<humi):
+        j_humi=1
+
+    if(cong<0):
+        j_cong=-1
+    elif(CONG_LEVEL[0]<cong):
+        j_cong=1
+    
+    return j_co2,j_temp,j_humi,j_cong
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッド
@@ -476,24 +526,7 @@ def soundmethod(co2,temp,hum,cong): #警告ボイスを出すためのメソッ�
         pygame.mixer.music.stop() #音源の長さ待ったら再生停止
     sound_number.clear()
 
-def send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong):
-    is_connected,connection=connect_db()
-    if(is_connected):
-        try: #データベースに値を送信
-            with connection.cursor() as cursor:
-                sql = "INSERT INTO "+table_name+"(rec_time,co2,temp,humi,cong) VALUES(%(time)s,%(co2)s,%(temp)s,%(humi)s,%(cong)s);"
-                into = {'time':str(rec_time),'co2':avg_co2,'temp':avg_temp,'humi':avg_humi,'cong':avg_cong}
-                cursor.execute(sql,into)
-                connection.commit()
-                cursor.close()
-                print("Data commited.")
-                return True
-        except: #送信に失敗したらエラーメッセージ
-            print("送信エラー")
-            os.system('echo 1 | sudo tee /proc/sys/vm/drop_caches>/dev/null')
-            return False
-    else:
-        return False
+
     
 if __name__=="__main__":
     main()
