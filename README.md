@@ -19,8 +19,10 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
   * [recorder](recorder)内に計測デバイス（Raspberry Pi 3 / 4）のコードを追加しました。
   * [COCOVision.py](recorder/COCOVision.py)を実行すると計測が開始されます。
   * [COCOVision-setup.py](recorder/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/COCOVision.config)を直接書き換えてください。
-  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録できます。（2/8 削除未対応）
+  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。~~（2/8 削除未対応）~~（2/14 削除対応）
 
+* ### 2/14
+  * 全動作確認・コメント文を追加したバージョン（v.1.0.4）をアップロードしました。[Releases](https://github.com/REM-Project/COCOVision/releases/)からダウンロードして下さい。
 
 # 実行
 ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
@@ -53,7 +55,7 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 * [SCD40](https://www.switch-science.com/catalog/7169/)（CO₂・温湿度センサー） 
 * webカメラ（任意数 - 2/7 1台の動作のみ確認）
 
-# ココデ×ガバルQ&A
+# Q&A
 1. ### [demo/script/Congestion.py](demo/script/Congestion.py)を実行しても、[CongServer.py](demo/script/CongServer.py)は動くが[OpenPoseIpCamToJson.py](demo/script/OpenPoseIpCamToJson.sh)(OpenPose)が動かない。
     <p>A. WSLのデフォルトのディストリビューションを確認して下さい</p>
     <p>dockerのやつとかになってるとbashが無反応になります（1敗）</p>
@@ -82,6 +84,8 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 
 Githubで管理する関係上省きましたが、~~プレゼン等でデモンストレーションを行う際に必要であれば~~(Docker上で動いてないので現状必須です - 2/8) [公式のリリース](https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases)から落としてください。
 
+また、~/demo/openpose/models内のbatchファイルを実行してmodelのダウンロードを行うことも忘れないで下さい。
+
 開発途中でapache2からnginxに切り替えましたが、apache2のDockerfile自体は残してありますので切り替えは簡単です。
 
 その際は[docker-compose.yml](docker-compose.yml)を書き換えて下さい。
@@ -107,7 +111,7 @@ Ubuntu上で実行した際、cudaのバージョンが合わずOpenPoseが機�
 <br>
 <br>
 
-## OpenPoseはIPストリーミングをそのまま受け取れるのでした。よってこれより下を読む必要はありません。
+## OpenPoseはIPストリーミングをそのまま受け取れます。よってこれより下を読む必要はありません。
 
 <br>
 <br>
