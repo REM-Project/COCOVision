@@ -45,6 +45,7 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
   [recorder](recorder/)内の[cocovision](recorder/cocovision)フォルダをダウンロードします。
   ファルダ内の[COCOVision.py](recorder/cocovision/COCOVision.py)を実行することで処理が開始されます。
   初回実行時は実行前に[COCOVision-setup.py](recorder/cocovision/COCOVision-setup.py)を実行し、部屋情報設定を行ってから[COCOVision.py](recorder/cocovision/COCOVision.py)を実行してください。
+  実行に必要なライブラリは[requirements.txt](recorder/cocovision/requirements.txt)からpipして下さい。
 
 # 実行環境
 ## OS・ドライバー
