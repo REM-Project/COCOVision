@@ -3,6 +3,7 @@
 /openpose/openpose
 /openpose/inputdata
 /mysql/db
+/releases
 
 /demo/script/__pycache__
 /openpose/script/__pycache__
