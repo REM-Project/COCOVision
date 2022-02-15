@@ -62,7 +62,8 @@ def main(device_ip,port,num_camera):
                 if(misstake==num_camera):
                     answer=-1
                 
-                sendline = str(answer).encode('utf-8')+","
+                sl=str(answer)+","
+                sendline = str(sl).encode('utf-8')
                 print('検出人数：'+str(answer)+'人')
                 connection.send(sendline)
                 time.sleep(5)

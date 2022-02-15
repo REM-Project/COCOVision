@@ -6,7 +6,7 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 __date__    = "2022/2/15"
 
 
@@ -420,7 +420,7 @@ def get_cong(socket1,room_capacity):
         #検出人数受信
         recv_value=socket1.recv(4096).decode()
         t_peo=recv_value.split(',')
-        num_people=t_peo[len(t_peo)]
+        num_people=t_peo[len(t_peo)-2]
 
         #人数が測定不能(-1)でないとき混雑度(%)を代入
         if num_people!=-1:
