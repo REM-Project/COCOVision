@@ -1,8 +1,9 @@
-/demo/script/__pycache__
 /demo/openpose
-/demo/openpose/script/__pycache__
 /demo/output_json
 /openpose/openpose
 /openpose/inputdata
-/openpose/script/__pycache__
 /mysql/db
+
+/demo/script/__pycache__
+/openpose/script/__pycache__
+/recorder/cocovision/__pycache__
