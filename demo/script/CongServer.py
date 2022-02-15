@@ -61,11 +61,11 @@ def main(device_ip,port,num_camera):
                 #全カメラが取得失敗した場合
                 if(misstake==num_camera):
                     answer=-1
-
-                sendline = str(answer).encode('utf-8')
+                
+                sendline = str(answer).encode('utf-8')+","
                 print('検出人数：'+str(answer)+'人')
                 connection.send(sendline)
-                time.sleep(3)
+                time.sleep(5)
             # クローズ
             connection.close()
             socket1.close()

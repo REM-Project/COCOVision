@@ -87,13 +87,14 @@ def main():
     #バックグラウンド処理実行開始（センサー値取得、混雑度受信、データベースへ送信）
     th_bg= threading.Thread(target=background)
     th_bg.start()
-    time.sleep(3)
+    time.sleep(1)
     
     #画面描画処理開始
     display()
     
 #バックグラウンド処理
 def background():
+    
     global now_datetime,co2,temp,humi,cong
     #変数定義
     # データベース接続状態
@@ -159,13 +160,13 @@ def background():
             if(not is_connected_socket):
                 is_connected_socket,socket1 = connect_socket(room_id)
 
-
             #混雑度受信
             if(is_stream_cam and is_connected_socket):
                 is_connected_socket,cong,socket1=get_cong(socket1,room_capacity)
                 if(cong!=-1):
                     sum_cong+=cong
                     count_get_cong+=1
+                    
 
 
         #音出力
@@ -191,7 +192,19 @@ def background():
                 #データベースに送信
                 is_send=send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong)
                 if(is_send):
-                    sum_co2,sum_temp,sum_humi,sum_cong,count_get_values,count_get_cong=0
+                    sum_co2=0
+                    sum_temp=0
+                    sum_humi=0
+                    sum_cong=0
+                    count_get_values=0
+                    count_get_cong=0
+                    send_time=datetime.datetime.now()
+                    
+        time.sleep(1)
+
+        def get_c():
+            pass
+
 
 #画面描画
 def display():
@@ -405,7 +418,9 @@ def get_cong(socket1,room_capacity):
     is_connected_socket=True 
     try:
         #検出人数受信
-        num_people=int(socket1.recv(4096).decode())
+        recv_value=socket1.recv(4096).decode()
+        t_peo=recv_value.split(',')
+        num_people=t_peo[len(t_peo)]
 
         #人数が測定不能(-1)でないとき混雑度(%)を代入
         if num_people!=-1:
