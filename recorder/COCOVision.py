@@ -6,8 +6,8 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.5"
-__date__    = "2022/2/14"
+__version__ = "1.0.6"
+__date__    = "2022/2/15"
 
 
 
@@ -281,88 +281,93 @@ def display():
 
         nowtime = "時刻：" + str(now_datetime.hour) + "時" + str(now_datetime.minute) + "分" + str(now_datetime.second) + "秒" #時刻は毎秒更新
         if(nowlabel["text"] != nowtime):
-            nowlabel["text"] = nowtime 
-
-        j_co2,j_temp,j_humi,j_cong=judge_level(co2,temp,humi,cong)
-        #CO2濃度によって枠線の色を変更
-        if (j_co2==1 and j_co2!=old_j_co2)  :
-            canvas.itemconfigure("rect" ,outline="Orange")
-            msg_co2 = "\n換気を行ってください"
-            co2label["foreground"] = '#ff0033'
-        elif(j_co2==2 and j_co2!=old_j_co2):
-            canvas.itemconfigure("rect" ,outline="Red")
-            msg_co2 = "\n換気を行ってください"
-            co2label["foreground"] = '#ff0033'
-        elif(j_co2==3 and j_co2!=old_j_co2):
-            canvas.itemconfigure("rect" ,outline="Purple")
-            msg_co2 = "\n今すぐ換気してください"
-            co2label["foreground"] = '#ff0033'
-        else:
-            canvas.itemconfigure("rect" ,outline="#009D5B")
-            msg_co2 = ""
-            co2label["foreground"] = '#000000'
-
-        old_j_co2=j_co2
-
-
-        if(j_temp==-1 and j_temp!=old_j_temp):
-            msg_temp = "\n暖房してください"
-            templabel["foreground"] = '#0066cc'
-        elif(j_temp==1 and j_temp!=old_j_temp):
-            msg_temp = "\n冷房してください"
-            templabel["foreground"] = '#ff0033'
-        else:
-            msg_temp = ""
-            templabel["foreground"] = '#000000'
-            
-        old_j_temp=j_temp
-
-
-        if(j_humi==-1 and j_humi!=old_j_humi):
-            msg_humi = "\n加湿してください"
-            humlabel["foreground"] = '#0066cc'
-        elif(j_humi==1 and j_humi!=old_j_humi):
-            msg_humi = "\n除湿してください"
-            humlabel["foreground"] = '#ff0033'
-        else:
-            msg_humi = ""
-            humlabel["foreground"] = '#000000'
-
-        old_j_humi=j_humi
-
-
-        if(j_cong==1 and j_cong!=old_j_cong):
-            msg_cong = "\n収容人数を超過しています"
-            conglabel["foreground"] = '#ff0033'
-        else:
-            msg_cong = ""
-            conglabel["foreground"] = '#000000'
+            nowlabel["text"] = nowtime
         
-        old_j_cong=j_cong
-
-
-        if(j_co2==j_temp==j_humi==0 and j_cong<=0 and normal == ""):
-            normal = "\n正常値です"
-        else:
-            normal = ""
-            
-
-        # if(now_datetime<=START_INTERVAL_TIME):
-        #     tkinter.StringVar(value = "初期設定中")
-        # el
-        if(normal == ""):
-            messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
-        else:
-            messagetext.set(normal)
-
-        canvas.itemconfigure("mestext", text=messagetext.get())
-        text_size = canvas.bbox(text_id)
-        mestext_x = text_size[0] + (text_size[2] - text_size[0]) / 2
-        mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
-        canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
-
         root.update_idletasks()
         root.update()
+
+        j_co2,j_temp,j_humi,j_cong=judge_level(co2,temp,humi,cong)
+
+        if(j_co2!=old_j_co2 or j_temp!=old_j_temp or j_humi!=old_j_humi or j_cong!=old_j_cong):
+            #CO2濃度によって枠線の色を変更
+            if (j_co2==1)  :
+                canvas.itemconfigure("rect" ,outline="Orange")
+                msg_co2 = "\n換気を行ってください"
+                co2label["foreground"] = '#ff0033'
+            elif(j_co2==2):
+                canvas.itemconfigure("rect" ,outline="Red")
+                msg_co2 = "\n換気を行ってください"
+                co2label["foreground"] = '#ff0033'
+            elif(j_co2==3):
+                canvas.itemconfigure("rect" ,outline="Purple")
+                msg_co2 = "\n今すぐ換気してください"
+                co2label["foreground"] = '#ff0033'
+            elif(j_co2==0):
+                canvas.itemconfigure("rect" ,outline="#009D5B")
+                msg_co2 = ""
+                co2label["foreground"] = '#000000'
+
+            old_j_co2=j_co2
+
+
+            if(j_temp==-1):
+                msg_temp = "\n暖房してください"
+                templabel["foreground"] = '#0066cc'
+            elif(j_temp==1):
+                msg_temp = "\n冷房してください"
+                templabel["foreground"] = '#ff0033'
+            elif(j_temp==0):
+                msg_temp = ""
+                templabel["foreground"] = '#000000'
+                
+            old_j_temp=j_temp
+
+
+            if(j_humi==-1):
+                msg_humi = "\n加湿してください"
+                humlabel["foreground"] = '#0066cc'
+            elif(j_humi==1):
+                msg_humi = "\n除湿してください"
+                humlabel["foreground"] = '#ff0033'
+            elif(j_humi==0):
+                msg_humi = ""
+                humlabel["foreground"] = '#000000'
+
+            old_j_humi=j_humi
+
+
+            if(j_cong==1):
+                msg_cong = "\n収容人数を超過しています"
+                conglabel["foreground"] = '#ff0033'
+            elif(j_cong==0):
+                msg_cong = ""
+                conglabel["foreground"] = '#000000'
+            
+            old_j_cong=j_cong
+
+
+            if(j_co2==j_temp==j_humi==0 and j_cong<=0 and normal == ""):
+                normal = "\n正常値です"
+            else:
+                normal = ""
+                
+
+            # if(now_datetime<=START_INTERVAL_TIME):
+            #     tkinter.StringVar(value = "初期設定中")
+            # el
+            if(normal == ""):
+                messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
+            else:
+                messagetext.set(normal)
+
+            canvas.itemconfigure("mestext", text=messagetext.get())
+            text_size = canvas.bbox(text_id)
+            mestext_x = text_size[0] + (text_size[2] - text_size[0]) / 2
+            mestext_y = text_size[1] + (text_size[3] - text_size[1]) / 2 + 40
+            canvas.move(text_id, mesrect_x - mestext_x , mesrect_y - mestext_y )
+
+            root.update_idletasks()
+            root.update()
 
 
 #データベース接続（直接呼び出さない）
