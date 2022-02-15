@@ -17,27 +17,34 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 * ### 2/7
   * [recorder](recorder)内に計測デバイス（Raspberry Pi 3 / 4）のコードを追加しました。
-  * [COCOVision.py](recorder/COCOVision.py)を実行すると計測が開始されます。
-  * [COCOVision-setup.py](recorder/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/COCOVision.config)を直接書き換えてください。
-  * [COCOVision-setTable.py](recorder/COCOVision-setTable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。~~（2/8 削除未対応）~~（2/14 削除対応）
+  * [COCOVision.py](recorder/cocovision/COCOVision.py)を実行すると計測が開始されます。
+  * [COCOVision-setup.py](recorder/cocovision/COCOVision-setup.py)を実行するとGUIでのデータベース・部屋選択ができます。又は[COCOVision.config](recorder/cocovision/COCOVision.config)を直接書き換えてください。
+  * [COCOVision-configtable.py](recorder/cocovision/cocoVision-configtable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。~~（2/8 削除未対応）~~（2/14 削除対応）
 
 * ### 2/14
   * 全動作確認・コメント文を追加したバージョン（v.1.0.4）をアップロードしました。[Releases](https://github.com/REM-Project/COCOVision/releases/)からダウンロードして下さい。
 
 # 実行
-ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
+* ## 処理用PC
+  ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
 
-その後[demo/script/Congestion.py](demo/script/Congestion.py) を実行して下さい。（カメラ映像から人数解析・計測デバイスに送信）
+  その後[demo/script/Congestion.py](demo/script/Congestion.py) を実行して下さい。（カメラ映像から人数解析・計測デバイスに送信）
 
+  下記取り消し線の内容はDocker上のOpenPoseに対しての説明のため不要です。
 
-~~Dockerコンテナ内で作業したい場合は `docker exec -it コンテナ名 bash` で中に入ることができます。~~
+  ~~Dockerコンテナ内で作業したい場合は `docker exec -it コンテナ名 bash` で中に入ることができます。~~
 
-~~OpenPoseが動作するか確認するのは下記で確認できると思います。~~
+  ~~OpenPoseが動作するか確認するのは下記で確認できると思います。~~
 ```
 cd /usr/local/openpose/build/examples/openpose
 mkdir data
 openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 ```
+
+* ## 計測デバイス
+  [recorder](recorder/)内の[cocovision](recorder/cocovision)フォルダをダウンロードします。
+  ファルダ内の[COCOVision.py](recorder/cocovision/COCOVision.py)を実行することで処理が開始されます。
+  初回実行時は実行前に[COCOVision-setup.py](recorder/cocovision/COCOVision-setup.py)を実行し、部屋情報設定を行ってから[COCOVision.py](recorder/cocovision/COCOVision.py)を実行してください。
 
 # 実行環境
 ## OS・ドライバー
@@ -58,8 +65,8 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
 # Q&A
 1. ### [demo/script/Congestion.py](demo/script/Congestion.py)を実行しても、[CongServer.py](demo/script/CongServer.py)は動くが[OpenPoseIpCamToJson.py](demo/script/OpenPoseIpCamToJson.sh)(OpenPose)が動かない。
     <p>A. WSLのデフォルトのディストリビューションを確認して下さい</p>
-    <p>dockerのやつとかになってるとbashが無反応になります（1敗）</p>
-    <p>対処法は下記の通り</p>
+    <p>dockerのものになっているとbashが使えなくなります</p>
+    <p>対処法は下記の通りです</p>
 
     ```
     #確認コマンド
