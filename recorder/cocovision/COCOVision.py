@@ -6,8 +6,8 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.7"
-__date__    = "2022/2/15"
+__version__ = "1.0.8"
+__date__    = "2022/2/16"
 
 
 
@@ -87,7 +87,7 @@ def main():
     #バックグラウンド処理実行開始（センサー値取得、混雑度受信、データベースへ送信）
     th_bg= threading.Thread(target=background)
     th_bg.start()
-    time.sleep(1)
+    time.sleep(3)
     
     #画面描画処理開始
     display()
@@ -163,7 +163,7 @@ def background():
             #混雑度受信
             if(is_stream_cam and is_connected_socket):
                 is_connected_socket,cong,socket1=get_cong(socket1,room_capacity)
-                if(cong!=-1):
+                if(cong>=0):
                     sum_cong+=cong
                     count_get_cong+=1
                     
@@ -177,13 +177,22 @@ def background():
 
         #データベースに送信
         if(now_datetime>=(send_time+timedelta(minutes=SEND_INTERVAL))):
+            
             #記録時間
             rec_time=now_datetime.strftime("%Y-%m-%d %H:%M:00")
+            
             #平均値算出
-            avg_co2=round(sum_co2/count_get_values,3)
-            avg_temp=round(sum_temp/count_get_values,3)
-            avg_humi=round(sum_humi/count_get_values,3)
-            avg_cong=round(sum_cong/count_get_cong,3)
+            avg_co2=None
+            avg_temp=None
+            avg_humi=None
+            if(count_get_values>=1):
+                avg_co2=round(sum_co2/count_get_values,3)
+                avg_temp=round(sum_temp/count_get_values,3)
+                avg_humi=round(sum_humi/count_get_values,3)
+            
+            avg_cong=None
+            if(count_get_cong>=1):
+                avg_cong=round(sum_cong/count_get_cong,3)
 
             #データベースの接続に失敗していた場合
             if(not is_cennected_db):
@@ -211,8 +220,8 @@ def display():
     #画面定義
     root = Tk()
     root.title("室内環境")
-    #root.attributes('-fullscreen', True)
-    root.geometry("1680x900")
+    root.attributes('-fullscreen', True)
+    root.geometry("1920x1080")
 
     canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
     canvas.place(x=0, y=0) #canvas設置
@@ -420,15 +429,10 @@ def get_cong(socket1,room_capacity):
         #検出人数受信
         recv_value=socket1.recv(4096).decode()
         t_peo=recv_value.split(',')
-<<<<<<< HEAD
-        num_people=t_peo[len(t_peo)-2]
-
-=======
         print(t_peo)
         print(t_peo[len(t_peo)-2])
         num_people=int(t_peo[len(t_peo)-2])
         print(num_people)
->>>>>>> d688c857c8e74b6bee70249b771f33a1c73511ae
         #人数が測定不能(-1)でないとき混雑度(%)を代入
         if num_people!=-1:
             cong = (float(num_people) / float(room_capacity))*100
@@ -564,7 +568,7 @@ def soundmethod(co2,temp,hum,cong):
             pygame.mixer.music.play(1) #再生開始。1の部分を変えるとn回再生(その場合は次の行の秒数も×nすること)
             time.sleep(mp3_length + 1.0) #再生開始後、音源の長さだけ待つ(0.25待つのは誤差解消)
             pygame.mixer.music.stop() #音源の長さ待ったら再生停止
-        except Excepsion as e:
+        except Exception as e:
             print(str(e))
     sound_number.clear()
 
