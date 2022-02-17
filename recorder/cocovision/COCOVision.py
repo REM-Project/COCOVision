@@ -66,7 +66,7 @@ def main():
     # データベースに送信する間隔（分単位）
     SEND_INTERVAL=2
     # 警告を再生する間隔（分単位）
-    SOUND_INTERVAL=10
+    SOUND_INTERVAL=1
     # 混雑度（人数）受信時に利用するポート番号のテンプレート
     BASE_PORT=9000
     # 各値の閾値（min~maxの順に配置、要素数を変える場合は適用されるif文も変更すること）
@@ -211,8 +211,8 @@ def display():
     #画面定義
     root = Tk()
     root.title("室内環境")
-    root.attributes('-fullscreen', True)
-    root.geometry("1920x1080")
+    #root.attributes('-fullscreen', True)
+    root.geometry("1680x900")
 
     canvas = tkinter.Canvas(root, width = 1920, height = 1080,background="PaleGoldenrod") #canvasの設定,背景色変更
     canvas.place(x=0, y=0) #canvas設置
@@ -420,8 +420,15 @@ def get_cong(socket1,room_capacity):
         #検出人数受信
         recv_value=socket1.recv(4096).decode()
         t_peo=recv_value.split(',')
+<<<<<<< HEAD
         num_people=t_peo[len(t_peo)-2]
 
+=======
+        print(t_peo)
+        print(t_peo[len(t_peo)-2])
+        num_people=int(t_peo[len(t_peo)-2])
+        print(num_people)
+>>>>>>> d688c857c8e74b6bee70249b771f33a1c73511ae
         #人数が測定不能(-1)でないとき混雑度(%)を代入
         if num_people!=-1:
             cong = (float(num_people) / float(room_capacity))*100
@@ -533,30 +540,32 @@ def soundmethod(co2,temp,hum,cong):
     j_list=judge_level(co2,temp,hum,cong)
 
     if(j_list[0]==3):
-        sound_number.append(12)
+        sound_number.append("12")
     elif(j_list[0]>=1):
-        sound_number.append(11)
+        sound_number.append("11")
     
     cast_num=[1,0,0,2]#-1 -> 1 , 1 -> 2
-    plus=20
-    inc=10
+    num=2
+    inc=1
     for judge in j_list:
         if(judge!=0):
-            num=cast_num[judge+plus]
-            sound_number.append()
-        plus+=inc
+            sound_number.append(str(num)+str(judge))
+        num+=inc
     
     print(sound_number)#debug
 
     for a in sound_number:#ボイスを順番に流す
-        filename = 'sound/sound'+str(a)+'.mp3' #再生したいmp3ファイル(ボイスの詳細はsoundファイル内のconfigにある)
-        print(str(filename))
-        pygame.mixer.init()
-        pygame.mixer.music.load(filename) #音源を読み込み
-        mp3_length = mp3(filename).info.length #音源の長さ取得
-        pygame.mixer.music.play(1) #再生開始。1の部分を変えるとn回再生(その場合は次の行の秒数も×nすること)
-        time.sleep(mp3_length + 1.0) #再生開始後、音源の長さだけ待つ(0.25待つのは誤差解消)
-        pygame.mixer.music.stop() #音源の長さ待ったら再生停止
+        try:
+            filename = 'sound/sound'+str(a)+'.mp3' #再生したいmp3ファイル(ボイスの詳細はsoundファイル内のconfigにある)
+            print(str(filename))
+            pygame.mixer.init()
+            pygame.mixer.music.load(filename) #音源を読み込み
+            mp3_length = mp3(filename).info.length #音源の長さ取得
+            pygame.mixer.music.play(1) #再生開始。1の部分を変えるとn回再生(その場合は次の行の秒数も×nすること)
+            time.sleep(mp3_length + 1.0) #再生開始後、音源の長さだけ待つ(0.25待つのは誤差解消)
+            pygame.mixer.music.stop() #音源の長さ待ったら再生停止
+        except Excepsion as e:
+            print(str(e))
     sound_number.clear()
 
 

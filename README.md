@@ -85,6 +85,14 @@ openpose.bin --image_dir /usr/local/openpose/examples/media/ --write_json data/
     
 
 # 引継事項
+## センサーについて
+利用しているscd40についてですか利用方法について実装できなかった改善点があるので残します
+
+電圧のノイズが測定値がブレるそうなので間にLDO（リニアレギュレータ）をかませることが推奨されています。scd40は3.3V動作なので5VにLDOを挟むことで安定すると思います。
+
+その他の注意点については[公式のデザインガイド](https://www.mouser.com/pdfDocs/Sensirion_CO2_Sensors_SCD4x_design-in_guide.pdf)を読んで参考にして下さい。
+
+
 ## demoファルダについて
 [demo](demo)には本来Windows版のOpenPoseを配置しています。
 
