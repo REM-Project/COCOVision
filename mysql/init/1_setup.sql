@@ -21,10 +21,10 @@ id int AUTO_INCREMENT PRIMARY KEY NOT NULL
 );
 
 CREATE USER worker@'%' IDENTIFIED BY 'th1117';
-GRANT create,delete ON cocovision.* TO worker@'%';
+GRANT CREATE,INSERT,SELECT,DELETE ON cocovision.* TO worker@'%';
 
 CREATE USER recorder@'%' IDENTIFIED BY 'th1117';
-GRANT INSERT,CREATE,DELETE ON cocovision.* TO recorder@'%';
+GRANT INSERT ON cocovision.* TO recorder@'%';
 GRANT SELECT,UPDATE ON cocovision.room_info TO recorder@'%';
 
 CREATE USER webuser@'%' IDENTIFIED BY 'th1117';
@@ -34,15 +34,17 @@ GRANT SELECT ON cocovision.* TO webuser@'%';
 
 
 
-/*初期化（３部屋生成）*/
+/*初期化（4部屋生成）*/
 create table system_values like values_template;
 create table hardware_values like values_template;
 create table software_values like values_template;
+create table lecture_values like values_template;
 
 insert into room_info(room_name,table_name,room_capacity) values
 ('システム実習室','system_values',20)
 ,('ハードウェア実習室','hardware_values',20)
 ,('ソフトウェア実習室','software_values',20)
+,('大講義室','lecture_values',70)
 ;
 
 
