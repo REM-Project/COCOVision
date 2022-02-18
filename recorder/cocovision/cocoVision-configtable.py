@@ -1,5 +1,6 @@
 import pymysql.cursors
 import PySimpleGUI as sg
+import time
 
 roomlist = []
 layout1 = [
@@ -27,7 +28,7 @@ def showWin1():
         if event == '追加' or event == '削除':
             try:
                 connection = pymysql.connect(host=values[0],
-                                             user='recorder',
+                                             user='worker',
                                              password='th1117',
                                              db='cocovision',
                                              charset='utf8')
@@ -70,11 +71,11 @@ def showWin3(connection):
             roomlist.append(str(row[0]))
     except:
         sg.popup('接続できませんでした、もう一度入力してください')
-        
+    
     win3 = sg.Window('COCOVision-deletetable',layout3,size=(340, 100))
-    while True:
+    while True:       
         event, values = win3.read()
-        if event is None: break
+        if event is None:break
         if event == '削除':
             if values[0]=="部屋一覧":
                 sg.popup('部屋を選択してください')
