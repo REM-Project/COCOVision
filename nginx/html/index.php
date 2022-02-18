@@ -11,9 +11,9 @@
 <?php
 try{
     $pdo = new PDO( //DB接続
-        'mysql:host=mysql;dbname=cocovision;charset=utf8',
-        'webuser',
-        'th1117'
+        'mysql:host=mysql;dbname=cocovision;charset=utf8', //接続先IPアドレス、データベース名、文字セット
+        'webuser', //接続ユーザー
+        'th1117' //ユーザーのパスワード
     );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
@@ -28,12 +28,12 @@ try{
     die('接続エラー：' .$Exception->getMessage());
 }
 $i = 0;
-$roomname = [];
+$roomname = []; //部屋名を入れる配列
 while($row = $stmh->fetch(PDO::FETCH_ASSOC)){
     $roomname[$i] = $row['room_name'];
 	$i++;
 }
-$jssend = json_encode($roomname);
+$jssend = json_encode($roomname); //部屋名の配列をjsに送信
 $pdo = null;
 ?>
 <script>

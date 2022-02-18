@@ -15,12 +15,12 @@
 	$enddate = $_POST['enddate']; //参照期間の終わり
 	$checkitems = $_POST['values']; //チェックしたco2濃度などの文字列を値を受け取っている
 	$roomname = $_POST['rooms']; //チェックした部屋を受け取っている
-	$data = [[[]]];
-	$maxlength = 0;
+	$data = [[[]]]; //センサー値などのデータを取得する際に利用する3次元配列
+	$maxlength = 0; //選択された部屋の中で最も多い行数を入れる
 	$j = 0;
 		try{ //データベース接続
     		$pdo = new PDO(
-        		'mysql:host=mysql;dbname=cocovision;charset=utf8', //ipアドレス、接続データベース
+        		'mysql:host=mysql;dbname=cocovision;charset=utf8', //ipアドレス、接続データベース、文字コード
         		'webuser', //ログインするユーザー名
         		'th1117' //パスワード
     		);
@@ -29,7 +29,7 @@
 		}catch(PDOException $Exception){
     		die('接続エラー：' .$Exception->getMessage());
 		}
-		for($i = 0; $i < count($roomname); $i++){
+		for($i = 0; $i < count($roomname); $i++){ //チェックされた部屋名に対応するテーブル名を取得
 			try{
     			$sql = "SELECT table_name FROM room_info WHERE room_name = '$roomname[$i]'";
     			$stmh = $pdo->prepare($sql);
@@ -39,10 +39,10 @@
 			}
 			$tablename[$i] = $stmh->fetchColumn();
 		}
-		for($i = 0; $i < count($roomname); $i++){
+		for($i = 0; $i < count($roomname); $i++){ //選択された期間内のデータをとる
 			$j = 0;
 			$table = $tablename[$i];
-			$data[$i][0][0] = 0;
+			$data[$i][0][0] = 0; //これがないと後の処理で存在しない配列を参照することになりエラーがでる
 			$data[$i][0][1] = 0;
 			$data[$i][0][2] = 0;
 			$data[$i][0][3] = 0;
@@ -64,10 +64,10 @@
 				die('接続エラー：' .$Exception->getMessage());
 			}
 		}
-		$datasend = json_encode($data);
-		$tablesend = json_encode($tablename);
-		$checkItemSend = json_encode($checkitems);
-		$roomsend = json_encode($roomname);
+		$datasend = json_encode($data); //jsでこの配列が使えるように必要となる処理
+		$tablesend = json_encode($tablename); //jsでこの配列が使えるように必要となる処理
+		$checkItemSend = json_encode($checkitems); //jsでこの配列が使えるように必要となる処理
+		$roomsend = json_encode($roomname); //jsでこの配列が使えるように必要となる処理
 		$pdo = null;//データベース接続を切る
 	?>
 	<span id="realtime"></span>
@@ -96,12 +96,12 @@
 		var checkitems = JSON.parse('<?php echo $checkItemSend; ?>');
 		var roomname = JSON.parse('<?php echo $roomsend; ?>');
 		var table = document.getElementById('data');
-		var newrow = table.insertRow();
-		var newcell = newrow.insertCell();
+		var newrow = table.insertRow(); //改行する際に使用
+		var newcell = newrow.insertCell(); //セルを追加する際に使用
 		var newtext = document.createTextNode('');
-		var item = ["記録時間", "CO2濃度", "温度", "湿度" ,"混雑度"]; //混雑度が入る
+		var item = ["記録時間", "CO2濃度", "温度", "湿度" ,"混雑度"]; //項目名
 		var maxlength = '<?php echo $maxlength; ?>';
-		var check = true;
+		var check = true; //選択された項目かどうかを判定するために使用
 			
 		//ここからtableに履歴データを表示
 		//部屋の名前をテーブルの一番上に入れる。
@@ -143,9 +143,9 @@
 						if(k == 5){
 							newtext = document.createTextNode(""); //最後は空白を入れる(混雑度と記録時間の間に空白セルを一ついれるため）
 						}else{
-							newtext = document.createTextNode(item[k]);
+							newtext = document.createTextNode(item[k]); //項目テキスト作成
 						}
-						newcell.appendChild(newtext);
+						newcell.appendChild(newtext); //項目挿入
 					}	
 				}
 			}
@@ -164,17 +164,17 @@
 							check = false;
 						}
 					}
-					if(check){
-						if(sqldata[i][0][0] == 0 || sqldata[i].length <= j || k == 5){
-							if(i != tablename.length - 1 || k != 5){
+					if(check){ //チェックされた項目の場合の処理
+						if(sqldata[i][0][0] == 0 || sqldata[i].length <= j || k == 5){ //参照した配列にデータが入っていない場合の処理
+							if(i != tablename.length - 1 || k != 5){ //最後のテーブルかつ最後の項目を参照している場合は以下の処理を行わない
 								newcell = newrow.insertCell();
 								newtext = document.createTextNode("");
 								newcell.appendChild(newtext);
 							}
-						} else {
-							newcell = newrow.insertCell();		
+						} else { //参照した配列にデータが入っている場合
+							newcell = newrow.insertCell(); //セル追加	
 							newtext = document.createTextNode(sqldata[i][j][k]);
-							newcell.appendChild(newtext);
+							newcell.appendChild(newtext); //センサー値などのデータを挿入
 							if(k == 1){ //ここでCO2濃度などに単位を付けている。
 								newtext = document.createTextNode("ppm");
 							}else if(k == 2) {
@@ -186,7 +186,7 @@
 							} else {
 								newtext = document.createTextNode("");
 							}
-							newcell.appendChild(newtext);
+							newcell.appendChild(newtext); //単位を挿入
 						}
 					}
 				}
@@ -206,17 +206,17 @@
 			tempdata = [];
 			humidata = [];
 			congdata = [];
-			let h2 = document.createElement('h2');
-			h2.innerHTML = roomname[i];
-			document.getElementById('chart-area').appendChild(h2);
-			for(var j = 0; j < sqldata[i].length; j++){
+			let h2 = document.createElement('h2'); //h2エレメント作成
+			h2.innerHTML = roomname[i]; //h2に部屋名を挿入
+			document.getElementById('chart-area').appendChild(h2); //部屋名表示
+			for(var j = 0; j < sqldata[i].length; j++){ //部屋ごとの行数分だけ繰り返す
 				label[j] = sqldata[i][j][0];
 				co2data[j] = sqldata[i][j][1];
 				tempdata[j] = sqldata[i][j][2];
 				humidata[j] = sqldata[i][j][3];
 				congdata[j] = sqldata[i][j][4];
 			}
-			const co2Charts = function () {
+			const co2Charts = function () { //CO2グラフ作成関数
   				const co2DataSet = {
     				type: 'line',
     				data: {
@@ -235,7 +235,7 @@
   				new Chart(ctx, co2DataSet);
 			};
 
-			const tempCharts = function () {
+			const tempCharts = function () { //温度グラフ作成関数
   				const tempDataSet = {
     				type: 'line',
     				data: {
@@ -253,7 +253,7 @@
   				document.getElementById('chart-area').appendChild(ctx);
   				new Chart(ctx, tempDataSet);
 			}
-			const humiCharts = function () {
+			const humiCharts = function () { //湿度グラフ作成関数
   				const humiDataSet = {
     				type: 'line',
     				data: {
@@ -271,7 +271,7 @@
   				document.getElementById('chart-area').appendChild(ctx);
   				new Chart(ctx, humiDataSet);
 			}
-			const congCharts = function () {
+			const congCharts = function () { //混雑度グラフ作成関数
   				const congDataSet = {
     				type: 'line',
     				data: {
@@ -290,7 +290,7 @@
   				document.getElementById('chart-area').appendChild(ctx);
   				new Chart(ctx, congDataSet);
 			}
-			for(l = 0; l < checkitems.length; l++){ //チェックが入っている項目が来た時にcheckをtrueにしている。
+			for(l = 0; l < checkitems.length; l++){ //チェックが入っている項目が来た時にグラフ作成
 				if(checkitems[l] == item[1]){
 					co2Charts();
 				} else if(checkitems[l] == item[2]) {

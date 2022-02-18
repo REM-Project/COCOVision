@@ -19,9 +19,9 @@
 	<?php
 		try{
     		$pdo = new PDO(
-        		'mysql:host=mysql;dbname=cocovision;charset=utf8',
-        		'webuser',
-        		'th1117'
+        		'mysql:host=mysql;dbname=cocovision;charset=utf8', //接続先IPアドレス、データベース名、文字コード
+        		'webuser', //接続ユーザー
+        		'th1117' //ユーザーパスワード
     		);
     		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     		$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
@@ -41,8 +41,8 @@
     		$roomname[$i] = $row['room_name'];
 			$i++;
 		}
-		$roomsend = json_encode($roomname);
-    	$pdo = null;
+		$roomsend = json_encode($roomname); //jsに部屋名の配列を送信
+    	$pdo = null; //データベース切断
 	?>
 	<span id="realtime"></span>
 	<h1 id="headName">データ保存履歴</h1>
@@ -73,16 +73,16 @@
 		<button type="submit" accesskey="s" tabindex="1" id="backbtn">戻る</button>
 	</form>
 	<script>
-		$(function() {
+		$(function() { //期間選択の始め日時をカレンダーで選択できるよう導入
 			$('#datepicker1').datetimepicker();
 		});
-    	$(function() {
+    	$(function() { //期間選択の終わり日時をカレンダーで選択できるよう導入
   			$('#datepicker2').datetimepicker();
 		});
 		
-		var roomname = JSON.parse('<?php echo $roomsend; ?>');
-		for(var i = 0; i < roomname.length; i++){
-			input = document.createElement('input');
+		var roomname = JSON.parse('<?php echo $roomsend; ?>'); //部屋名の配列をphpから受け取る
+		for(var i = 0; i < roomname.length; i++){ //項目名を選択するチェックボックスを作成する
+			input = document.createElement('input'); 
 			input.setAttribute("type", "checkbox");
 			input.setAttribute("class", "check2");
 			input.setAttribute("name", "rooms[]");
@@ -98,13 +98,14 @@
 		}
 		
 		//チェックが入っていない場合の処理
-		function check(){
+		function check(){ //項目名か部屋名どちらかのチェックがすべて外れている場合、[表示]ボタンと[csv出力]ボタンを押せないようにする
 			var check1 = false;
 			var check2 = false;
 			for(var i = 0; i < document.getElementsByClassName("check1").length; i++){
 				if(document.getElementsByClassName("check1")[i].checked){
 					check1 = true;
 					document.getElementById("displaybtn").disabled = false;
+					document.getElementById("csvbtn").disabled = false;
 					break;
 				}
 			}
@@ -112,15 +113,17 @@
 				if(document.getElementsByClassName("check2")[j].checked){
 					check2 = true;
 					document.getElementById("displaybtn").disabled = false;
+					document.getElementById("csvbtn").disabled = false;
 					break;
 				}
 			}
 			if(!check1 || !check2){
 				document.getElementById("displaybtn").disabled = true;
+				document.getElementById("csvbtn").disabled = true;
 			}
 		}
-		document.querySelector("#selectPart").addEventListener('change', check);
-		function multipleaction(url){
+		document.querySelector("#selectPart").addEventListener('change', check); //チェックが外れたりついたりするたびに[check]関数を呼び出す
+		function multipleaction(url){ //表示ボタンとcsv出力ボタンは同じフォームを参照しているため、action先をボタンによって分けるためにこの関数をりようする　
 			var f = document.querySelector("form");
 			var action = f.setAttribute("action", url);
 			document.querySelector("form").submit();

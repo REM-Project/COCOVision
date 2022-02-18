@@ -1,6 +1,6 @@
 try{
     $pdo = new PDO(
-        'mysql:host=172.30.8.14;dbname=co2;charset=utf8',
+        'mysql:host=mysql;dbname=co2;charset=utf8',
         'webuser',
         'th1117'
     );
