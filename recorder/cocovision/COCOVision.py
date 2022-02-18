@@ -6,7 +6,7 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 __date__    = "2022/2/18"
 
 
@@ -77,12 +77,13 @@ def main():
     
 
     #受け渡し用グローバル変数
-    global now_datetime,co2,temp,humi,cong#現在時刻、二酸化炭素濃度、温度、湿度、混雑度
+    global now_datetime,co2,temp,humi,cong,is_sensor_ready#現在時刻、二酸化炭素濃度、温度、湿度、混雑度、センサー値を受信したかどうか
     now_datetime=datetime.datetime.now()
     co2=0           #n(ppm)
     temp=0.0        #n(℃)
     humi=0.0        #n(%)
     cong=-2         #カメラ不使用時:-2,計測失敗時:-1,計測成功時:n(%)
+    is_sensor_ready=False
 
     #バックグラウンド処理実行開始（センサー値取得、混雑度受信、データベースへ送信）
     th_bg= threading.Thread(target=background)
@@ -95,7 +96,7 @@ def main():
 #バックグラウンド処理
 def background():
     
-    global now_datetime,co2,temp,humi,cong
+    global now_datetime,co2,temp,humi,cong,is_sensor_ready
     #変数定義
     # データベース接続状態
     is_cennected_db=False
@@ -146,7 +147,7 @@ def background():
     while True:
         now_datetime=datetime.datetime.now()
         #センサー値取得
-        co2,temp,humi=get_value(scd4x)
+        is_sensor_ready,co2,temp,humi=get_value(scd4x)
         #データベース送信用に格納(最初の30秒は格納しない)
         if(now_datetime>=START_INTERVAL_TIME):
             sum_co2+=co2
@@ -277,7 +278,7 @@ def display():
     #画面定義終わり
 
     #変数定義
-    global now_datetime,co2,temp,humi,cong
+    global now_datetime,co2,temp,humi,cong,is_sensor_ready
     old_j_co2,old_j_temp,old_j_humi,old_j_cong=-100,-100,-100,-100
     msg_co2,msg_temp,msg_humi,msg_cong,normal="","","","",""
     
@@ -374,10 +375,9 @@ def display():
                 normal = ""
                 
 
-            # if(now_datetime<=START_INTERVAL_TIME):
-            #     tkinter.StringVar(value = "初期設定中")
-            # el
-            if(normal == ""):
+            if(is_sensor_ready):
+                tkinter.StringVar(value = "初期設定中")
+            elif(normal == ""):
                 messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
             else:
                 messagetext.set(normal)
@@ -469,14 +469,14 @@ def get_room_info():
 
 #センサー値取得
 def get_value(scd4x):
+    is_sensor_ready=scd4x.data_ready
     co2=-1
     temp=-1
     humi=-1
     
-    while True:
-        if scd4x.data_ready:
-            co2,temp,humi=scd4x.CO2,scd4x.temperature,scd4x.relative_humidity
-            break
+    if is_sensor_ready:
+        co2,temp,humi=scd4x.CO2,scd4x.temperature,scd4x.relative_humidity
+        
     
     if(co2==None):
         co2=0
@@ -487,7 +487,7 @@ def get_value(scd4x):
     
     print(co2)
     
-    return co2,temp,humi
+    return is_sensor_ready,co2,temp,humi
 
 
 #閾値判定
