@@ -6,8 +6,8 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.8"
-__date__    = "2022/2/16"
+__version__ = "1.0.9"
+__date__    = "2022/2/18"
 
 
 
@@ -157,7 +157,7 @@ def background():
 
         if(room_id!=None):
             #ソケット通信接続が切れている場合に再接続
-            if(not is_connected_socket):
+            if((not is_connected_socket) and is_stream_cam):
                 is_connected_socket,socket1 = connect_socket(room_id)
 
             #混雑度受信
