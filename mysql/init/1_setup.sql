@@ -21,7 +21,7 @@ id int AUTO_INCREMENT PRIMARY KEY NOT NULL
 );
 
 CREATE USER worker@'%' IDENTIFIED BY 'th1117';
-GRANT CREATE,INSERT,SELECT,DELETE ON cocovision.* TO worker@'%';
+GRANT CREATE,INSERT,SELECT,DELETE,DROP ON cocovision.* TO worker@'%';
 
 CREATE USER recorder@'%' IDENTIFIED BY 'th1117';
 GRANT INSERT ON cocovision.* TO recorder@'%';
