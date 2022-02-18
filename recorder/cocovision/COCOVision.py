@@ -375,8 +375,8 @@ def display():
                 normal = ""
                 
 
-            if(is_sensor_ready):
-                tkinter.StringVar(value = "初期設定中")
+            if(not is_sensor_ready):
+                messagetext.set("準備中")
             elif(normal == ""):
                 messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
             else:
