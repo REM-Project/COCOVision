@@ -24,7 +24,7 @@ CREATE USER worker@'%' IDENTIFIED BY 'th1117';
 GRANT create,delete ON cocovision.* TO worker@'%';
 
 CREATE USER recorder@'%' IDENTIFIED BY 'th1117';
-GRANT INSERT ON cocovision.* TO recorder@'%';
+GRANT INSERT,CREATE ON cocovision.* TO recorder@'%';
 GRANT SELECT,UPDATE ON cocovision.room_info TO recorder@'%';
 
 CREATE USER webuser@'%' IDENTIFIED BY 'th1117';
