@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 roomlist = []
 layout1 = [
   [sg.Text('データベースIPアドレス入力画面')],
-  [sg.Text('データベースのIPアドレス:', size=(23,1)), sg.InputText('172.30.8.206')],
+  [sg.Text('データベースのIPアドレス:', size=(23,1)), sg.InputText('192.168.10.38')],
   [sg.Submit(button_text='追加'),sg.Submit(button_text='削除')]]
 
 layout2 = [
@@ -52,11 +52,14 @@ def setupDb(connection,values):
         sql = '''insert into room_info(room_name,table_name,room_capacity) values(%(room)s,%(table)s,%(capacity)s);'''
         into ={'room':values[0],'table':values[1]+"_values",'capacity':values[2]}
         cursor.execute(sql,into)
+        sql = 'create table '+values[1]+'_values like values_template;'
+        cursor.execute(sql)
         connection.commit()
         cursor.close()
         sg.popup('適用しました')
-    except: #接続できなかったらエラー文
-        sg.popup('データベースへの追加に失敗しました')
+    except Exception as e: #接続できなかったらエラー文
+        sg.popup('データベースへの追加に失敗しました:' +str(e))
+        print(str(e))
         
 def showWin3(connection):
     try:#get to room list
@@ -82,14 +85,20 @@ def showWin3(connection):
 def deleteDb(connection,values):
     try: #mysqlデータベースに接続
         cursor=connection.cursor()
-        sql = '''delete from room_info where room_name=%(room)s;'''
-        into ={'room':values[0]}
+        sql = '''select table_name from room_info where room_name=%s;'''
+        into = values[0]
         cursor.execute(sql,into)
+        into = cursor.fetchall()[0][0]
+        sql = '''delete from room_info where table_name=%s;'''
+        cursor.execute(sql,into)
+        sql = 'drop table '+into+';'
+        cursor.execute(sql)
         connection.commit()
         cursor.close()
         sg.popup('削除しました')
-    except: #接続できなかったらエラー文
-        sg.popup('テーブル削除に失敗しました')
+    except Exception as e: #接続できなかったらエラー文
+        sg.popup('テーブル削除に失敗しました:' +str(e))
+        print(str(e))
         
 #start task
 reWin1=showWin1()
