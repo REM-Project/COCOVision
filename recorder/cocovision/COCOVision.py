@@ -6,8 +6,8 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.10"
-__date__    = "2022/2/18"
+__version__ = "1.0.12"
+__date__    = "2022/2/22"
 
 
 
@@ -66,8 +66,9 @@ def main():
     # データベースに送信する間隔（分単位）
     SEND_INTERVAL=2
     # 警告を再生する間隔（分単位）
-    SOUND_INTERVAL=1
-    # 混雑度（人数）受信時に利用するポート番号のテンプレート
+    SOUND_INTERVAL=15
+    #SOUND_INTERVAL=1
+    # 混雑度（人数）受信時に利用20るポート番号のテンプレート
     BASE_PORT=9000
     # 各値の閾値（min~maxの順に配置、要素数を変える場合は適用されるif文も変更すること）
     CO2_LEVEL=[1000,1500,2000]      #それぞれの値以上で段階的に警告
@@ -147,13 +148,17 @@ def background():
     while True:
         now_datetime=datetime.datetime.now()
         #センサー値取得
-        is_sensor_ready,co2,temp,humi=get_value(scd4x)
-        #データベース送信用に格納(最初の30秒は格納しない)
-        if(now_datetime>=START_INTERVAL_TIME):
-            sum_co2+=co2
-            sum_temp+=temp
-            sum_humi+=humi
-            count_get_values+=1
+        is_sensor_ready,t_co2,t_temp,t_humi=get_value(scd4x)
+        if(is_sensor_ready):
+            co2=t_co2
+            temp=t_temp
+            humi=t_humi
+            #データベース送信用に格納(最初の30秒は格納しない)
+            if(now_datetime>=START_INTERVAL_TIME):
+                sum_co2+=co2
+                sum_temp+=temp
+                sum_humi+=humi
+                count_get_values+=1
 
 
         if(room_id!=None):
@@ -210,7 +215,7 @@ def background():
                     count_get_cong=0
                     send_time=datetime.datetime.now()
                     
-        time.sleep(1)
+        time.sleep(0.5)
 
         def get_c():
             pass
@@ -311,7 +316,7 @@ def display():
 
         j_co2,j_temp,j_humi,j_cong=judge_level(co2,temp,humi,cong)
 
-        if(j_co2!=old_j_co2 or j_temp!=old_j_temp or j_humi!=old_j_humi or j_cong!=old_j_cong):
+        if(is_sensor_ready):
             #CO2濃度によって枠線の色を変更
             if (j_co2==1)  :
                 canvas.itemconfigure("rect" ,outline="Orange")
@@ -374,10 +379,11 @@ def display():
             else:
                 normal = ""
                 
-
-            if(not is_sensor_ready):
-                messagetext.set("準備中")
-            elif(normal == ""):
+            #print("is_sensor_ready:"+str(is_sensor_ready))
+            #if(not is_sensor_ready):
+            #    messagetext.set("初期設定中") 
+            #el
+            if(normal == ""):
                 messagetext.set(msg_co2 + msg_temp + msg_humi + msg_cong)
             else:
                 messagetext.set(normal)
@@ -415,8 +421,8 @@ def connect_socket(room_id):
         socket1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         socket1.connect(serversoc)
         return True,socket1
-    except:
-        print("ソケット通信接続失敗")
+    except Exception as e:
+        print("ソケット通信接続失敗:"+str(e))
         return False,None
 
 
@@ -548,29 +554,37 @@ def soundmethod(co2,temp,hum,cong):
     elif(j_list[0]>=1):
         sound_number.append("11")
     
-    cast_num=[1,0,0,2]#-1 -> 1 , 1 -> 2
-    num=2
-    inc=1
-    for judge in j_list:
-        if(judge!=0):
-            sound_number.append(str(num)+str(judge))
-        num+=inc
+    if(j_list[1]==-1):
+        sound_number.append("2-1")
+    elif(j_list[1]==1):
+        sound_number.append("21")
+        
+    if(j_list[2]==-1):
+        sound_number.append("3-1")
+    elif(j_list[2]==1):
+        sound_number.append("31")
+    
+    if(j_list[3]==1):
+        sound_number.append("41")
     
     print(sound_number)#debug
-
-    for a in sound_number:#ボイスを順番に流す
-        try:
-            filename = 'sound/sound'+str(a)+'.mp3' #再生したいmp3ファイル(ボイスの詳細はsoundファイル内のconfigにある)
-            print(str(filename))
-            pygame.mixer.init()
-            pygame.mixer.music.load(filename) #音源を読み込み
-            mp3_length = mp3(filename).info.length #音源の長さ取得
-            pygame.mixer.music.play(1) #再生開始。1の部分を変えるとn回再生(その場合は次の行の秒数も×nすること)
-            time.sleep(mp3_length + 1.0) #再生開始後、音源の長さだけ待つ(0.25待つのは誤差解消)
-            pygame.mixer.music.stop() #音源の長さ待ったら再生停止
-        except Exception as e:
-            print(str(e))
+    
+    if(len(sound_number)>1):
+        for a in sound_number:#ボイスを順番に流す
+            try:
+                filename = 'sound/sound'+str(a)+'.mp3' #再生したいmp3ファイル(ボイスの詳細はsoundファイル内のconfigにある)
+                print(str(filename))
+                pygame.mixer.init()
+                pygame.mixer.music.load(filename) #音源を読み込み
+                mp3_length = mp3(filename).info.length #音源の長さ取得
+                pygame.mixer.music.play(1) #再生開始。1の部分を変えるとn回再生(その場合は次の行の秒数も×nすること)
+                time.sleep(mp3_length + 1.0) #再生開始後、音源の長さだけ待つ(0.25待つのは誤差解消)
+                pygame.mixer.music.stop() #音源の長さ待ったら再生停止
+            except Exception as e:
+                print(str(e))
+                
     sound_number.clear()
+        
 
 
 
