@@ -8,3 +8,4 @@
 /demo/script/__pycache__
 /openpose/script/__pycache__
 /recorder/cocovision/__pycache__
+/recorder/cocovision/COCOVision.config

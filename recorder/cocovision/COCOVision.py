@@ -6,8 +6,8 @@
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.12"
-__date__    = "2022/2/22"
+__version__ = "1.0.14 - elden ring"
+__date__    = "2022/2/25"
 
 
 
@@ -33,10 +33,39 @@ import StreamCamera
 from multiprocessing import Process
 
 
+def cnf():
+    global BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,IS_SHOW_DISPLAY
+    ####調整項目####
+
+
+    # 画面描画切り替え
+    IS_SHOW_DISPLAY=True
+
+    # 初期待機時間（起動した時間+30秒）
+    START_INTERVAL_TIME = datetime.datetime.now()+timedelta(seconds=30)
+    # データベースに送信する間隔（分単位）
+    SEND_INTERVAL=2
+    # 警告を再生する間隔（分単位）
+    SOUND_INTERVAL=15
+    # 混雑度（人数）受信時に利用するポート番号のテンプレート
+    BASE_PORT=9000
+    # 各値の閾値（min~maxの順に配置、要素数を変える場合は judge_level() も変更すること）
+    CO2_LEVEL=[1000,1500,2000]      #それぞれの値以上で段階的に警告
+    TEMP_LEVEL=[18,28]              #[0]未満、[1]超過で警告
+    HUMI_LEVEL=[40,70]              #[0]未満、[1]超過で警告
+    CONG_LEVEL=[100]                #[0]超過で警告
+    
+
+    ################
+
+
+
 def main():
     #初期定義
+    cnf()
+
     # グローバル定義
-    global ROOM_NAME,NUM_CAMERA,HOST,BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL
+    global ROOM_NAME,NUM_CAMERA,HOST
 
     # このファイルのディレクトリpath
     path=os.path.dirname(__file__)
@@ -59,32 +88,17 @@ def main():
         sys.exit(str(e))
 
 
-
-    #調整項目
-    # 初期待機時間（起動した時間+30秒）
-    START_INTERVAL_TIME = datetime.datetime.now()+timedelta(seconds=30)
-    # データベースに送信する間隔（分単位）
-    SEND_INTERVAL=2
-    # 警告を再生する間隔（分単位）
-    SOUND_INTERVAL=15
-    #SOUND_INTERVAL=1
-    # 混雑度（人数）受信時に利用20るポート番号のテンプレート
-    BASE_PORT=9000
-    # 各値の閾値（min~maxの順に配置、要素数を変える場合は適用されるif文も変更すること）
-    CO2_LEVEL=[1000,1500,2000]      #それぞれの値以上で段階的に警告
-    TEMP_LEVEL=[18,28]              #[0]未満、[1]超過で警告
-    HUMI_LEVEL=[40,70]              #[0]未満、[1]超過で警告
-    CONG_LEVEL=[100]                #[0]超過で警告
+    
     
 
     #受け渡し用グローバル変数
-    global now_datetime,co2,temp,humi,cong,is_sensor_ready#現在時刻、二酸化炭素濃度、温度、湿度、混雑度、センサー値を受信したかどうか
+    global now_datetime,co2,temp,humi,cong,is_sensor_ready      #現在時刻、二酸化炭素濃度、温度、湿度、混雑度、センサー値を受信したかどうか
     now_datetime=datetime.datetime.now()
-    co2=0           #n(ppm)
-    temp=0.0        #n(℃)
-    humi=0.0        #n(%)
-    cong=-2         #カメラ不使用時:-2,計測失敗時:-1,計測成功時:n(%)
-    is_sensor_ready=False
+    co2=-1                                                      #n(ppm)
+    temp=-1                                                     #n(℃)
+    humi=-1                                                     #n(%)
+    cong=-2                                                     #カメラ不使用時:-2,計測失敗時:-1,計測成功時:n(%)
+    is_sensor_ready=False                                       #センサー値を取得できているかどうか
 
     #バックグラウンド処理実行開始（センサー値取得、混雑度受信、データベースへ送信）
     th_bg= threading.Thread(target=background)
@@ -92,7 +106,8 @@ def main():
     time.sleep(3)
     
     #画面描画処理開始
-    display()
+    if(IS_SHOW_DISPLAY):
+        display()
     
 #バックグラウンド処理
 def background():
@@ -203,22 +218,23 @@ def background():
             #データベースの接続に失敗していた場合
             if(not is_cennected_db):
                 is_cennected_db,room_capacity,table_name,room_id=get_room_info()
-            if(is_cennected_db):
+            
+            if(avg_co2==avg_temp==avg_humi==avg_cong==None):
+                #値が無い場合に送信しない
+                is_send=True
+            elif(is_cennected_db):
                 #データベースに送信
                 is_send=send_db(HOST,table_name,rec_time,avg_co2,avg_temp,avg_humi,avg_cong)
-                if(is_send):
-                    sum_co2=0
-                    sum_temp=0
-                    sum_humi=0
-                    sum_cong=0
-                    count_get_values=0
-                    count_get_cong=0
-                    send_time=datetime.datetime.now()
+            if(is_send):
+                sum_co2=0
+                sum_temp=0
+                sum_humi=0
+                sum_cong=0
+                count_get_values=0
+                count_get_cong=0
+                send_time=datetime.datetime.now()
                     
-        time.sleep(0.5)
-
-        def get_c():
-            pass
+        time.sleep(1)
 
 
 #画面描画

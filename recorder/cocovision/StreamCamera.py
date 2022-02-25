@@ -10,13 +10,15 @@ import signal
 import psutil
 #メインストリーム
 def main():
-    # このファイルのディレクトリpath
-    path=os.path.dirname(__file__)
-    # python3.9以前用に相対パスから絶対パスに変換
-    path=os.path.abspath(path)
-    # カレントディレクトリをこのファイルがあるディレクトリに変更
-    os.chdir(path)
+    #初期定義
+    try:
+        # このファイルのディレクトリpath
+        path=os.path.dirname(__file__)
 
+        # カレントディレクトリをこのファイルがあるディレクトリに変更
+        os.chdir(path)
+    except Exception as e:
+        print(e)
     # 子プロセス捕捉用
     popen=[]
     
