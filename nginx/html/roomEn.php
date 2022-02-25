@@ -35,9 +35,6 @@
     		$stmh = $pdo->prepare($sql);
     		$stmh->execute();
     		$sensorvalues = $stmh->fetch();
-    		if($sensorvalues['cong'] == -1){ //congが-1の時はカメラが計測を行っていないときであるため表示を[計測なし]にする。
-    			$sensorvalues['cong'] = "計測なし";
-    		}
 		}catch(PDOException $Exception){
     		die('接続エラー：' .$Exception->getMessage());
 		}
@@ -78,13 +75,13 @@ $pdo = null; //DB切断
 			br[i] = document.createElement('br');
 			p[i] = document.createElement('p');
 		}
-		var co2text = document.createTextNode('CO2: ' + co2 + 'ppm'); //HTMLに追加したい文字はcreateTextNodeで作成する必要あり。
-		var temptext = document.createTextNode('温度: ' + temp + "℃");
-		var humitext = document.createTextNode('湿度: ' + humi + "%");
+		var co2text = document.createTextNode('CO2: ' + Math.round(co2) + 'ppm'); //HTMLに追加したい文字はcreateTextNodeで作成する必要あり。
+		var temptext = document.createTextNode('温度: ' + Math.round(temp * 10) / 10 + "℃");
+		var humitext = document.createTextNode('湿度: ' +Math.round(humi * 10 ) / 10 + "%");
 		if(cong != -1){ //congが-1のときは[計測なし]を表示するため%を表示しない
-			var congtext = document.createTextNode('混雑度: ' + cong);
+			var congtext = document.createTextNode('混雑度: '+Math.round(cong * 10 ) / 10 + "%");
 		} else {//congが-1でないときは以下の処理を行う
-			var congtext = document.createTextNode('混雑度: ' + cong + "%");
+			var congtext = document.createTextNode('混雑度: 計測なし');
 		}
 		var roomtext = document.createTextNode(roomname);
 		var valueDisplay = document.getElementById("sensorValue")

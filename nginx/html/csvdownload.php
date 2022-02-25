@@ -11,7 +11,7 @@
 		$confirmation =  ["記録時間", "CO2濃度", "温度", "湿度" ,"混雑度"]; //項目名
 		$check = true; //選択された項目かどうかを判定するために使用
     try{ //データベース接続
-		$dsn =  new PDO('mysql:dbname=cocovision;host=172.30.8.206;charset=utf8',//データベース名、接続するPCのIPアドレス、文字コード
+		$dsn =  new PDO('mysql:dbname=cocovision;host=mysql;charset=utf8',//データベース名、接続するPCのIPアドレス、文字コード
 	 		'webuser',//データベースユーザー名
 	 		'th1117'//データベースユーザーパスワード
 	    	);
@@ -55,9 +55,9 @@
         $dsn = null;
 
 	// 出力の設定
-	header("Content-Type: text/csv");
-	header("Content-Disposition: attachment; filename=データ履歴.csv");
-	header("Content-Transfer-Encoding: binary");
+	// header("Content-Type: text/csv");
+	// header("Content-Disposition: attachment; filename=データ履歴.csv");
+	// header("Content-Transfer-Encoding: binary");
 	
 	//csvデータを作成
 	if( !empty($data) ){ //センサー値などのデータが空ではないとき
