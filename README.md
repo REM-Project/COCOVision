@@ -10,7 +10,8 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 # 実行
 * ## 処理用PC
-  ダウンロード・解凍した後、[cocovision](./)内で `docker compose up -d` を実行します。
+  ダウンロード・解凍した後、[SetupUseIpAddr.py](demo/script/SetupUseIpAddr.py)を実行し使用するIPアドレスを設定して下さい。
+  その後[cocovision](./)内で `docker compose up -d` を実行します。
 
   [demo](demo)には本来Windows版のOpenPoseを配置しています。
 
@@ -60,12 +61,13 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
     wsl -s <ディストリビューション名>
 
     ```
-2. ### カメラ映像が取得できない
+2. ### カメラ映像（混雑度）が取得できない
     <p>A. 以下に当て嵌まるかどうか確認・該当した箇所を修正して下さい</p>
     
     * データベースに計測デバイスのIPアドレスは登録されていますか
     * 処理用PCと同じネットワークに属していますか
     * データベースとOpenPoseを別々のPCで実行していませんか
+    * 室内端末で登録したデータベースのIPアドレスと[SetupUseIpAddr.py](demo/script/SetupUseIpAddr.py)で設定したIPアドレスは同一ですか
     
 3. ### Raspberry Piから音が出ない
     <p>A. 音声の出力先を確認・変更して下さい</p>
