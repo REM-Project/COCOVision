@@ -1,0 +1,24 @@
+COCOVision.py
+    main()
+        config.road
+        dbconnect(config)
+            connect
+            select
+            return t_name,cap,id
+        cong(config,cap)
+            connect
+            get num_peaple
+            return peaple_per_cap
+        getValue()
+            get sensor_value
+            return sensor_value
+        display(sensor_value,peaple_per_cap)
+            show
+        sound(sensor_value,peaple_per_cap)
+            if sensor_value,peaple_per_cap -> output sound
+        senddb(datetime,sensor_value,peaple_per_cap)
+
+
+
+    StreamCamera.py
+        rstpCam.sh
