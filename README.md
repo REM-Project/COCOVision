@@ -44,7 +44,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 * NVIDIA Geforce RTX 2070
 
 ## 室内端末
-* Raspberry Pi 3 / 4
+* Raspberry Pi 4
 * [SCD40](https://www.switch-science.com/catalog/7169/)（CO₂・温湿度センサー） 
 * webカメラ（任意数 - 2/7 1台の動作のみ確認）
 
@@ -78,7 +78,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 ## センサーについて
 利用しているscd40についてですか利用方法について実装できなかった改善点があるので残します
 
-電圧のノイズで測定値がブレるそうなので間にLDO（リニアレギュレータ）をかませることが推奨されています。scd40は3.3V動作なので5VにLDOを挟むことで安定すると思います。
+電圧のノイズで測定値がブレるので間にLDO（リニアレギュレータ）をかませることが推奨されています。scd40は3.3V動作なので5VにLDOを挟むことで安定すると思います。
 
 その他の注意点については[公式のデザインガイド](https://sensirion.com/media/documents/0D0C9129/61653848/Sensirion_CO2_Sensors_SCD4x_design-in_guide.pdf)を読んで参考にして下さい。
 
