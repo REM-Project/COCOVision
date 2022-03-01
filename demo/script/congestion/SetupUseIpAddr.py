@@ -38,7 +38,7 @@ def main():
                 sg.popup('IPアドレスを選択して下さい')
             else:            
                 path = os.path.dirname(__file__)
-                with open(path+"/ip_addr_config.py", "w",encoding="utf-8") as f:
+                with open(path+"/config/ip_addr_config.py", "w",encoding="utf-8") as f:
                     f.write("IP_ADDR='"+ip_addr+"'")
                 sg.popup('適用しました')
         else:

@@ -1,8 +1,12 @@
 #ライブラリ
 import sys
+import os
 import pymysql #要インストール
-#ローカル
-import mysql_config #MySQLのログイン情報・同一ディレクトリに用意
+from pathlib import Path
+
+
+sys.path.append(os.path.abspath(Path(os.path.dirname(__file__)).resolve().parent))#親ディレクトリをpathに追加
+from config import mysql_config #MySQLのログイン情報
 
 
 #やってること
@@ -87,17 +91,28 @@ def get_all():
     device_ips,num_cameras,ids=main()
     return device_ips,num_cameras,ids
 
-def get():
-    device_ips,num_cameras,ids=main()
-    return device_ips,num_cameras,ids
+def get_ips():
+    result=main()
+    device_ips=result[0]
+    return device_ips
+
+def get_num_c():
+    result=main()
+    num_cameras=result[1]
+    return num_cameras
+
+def get_ids():
+    result=main()
+    ids=result[2]
+    return ids
 
 
 #shellからの呼び出し応答（返答形式 xxx.yyy.zzz.aaa,カメラ数 改行(\n)）
 if __name__ == '__main__':
-    device_ips,num_cameras=main()
+    device_ips,num_cameras,ids=main()
 
     for i in range(len(device_ips)):
-        sys.stdout.write(str(device_ips[i])+","+str(num_cameras[i])+"\n")
+        sys.stdout.write(str(device_ips[i])+","+str(num_cameras[i])+","+str(ids[i])+"\n")
 
 
 

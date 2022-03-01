@@ -1,13 +1,16 @@
 #COCOVision.py
-# Raspberry Piで実行する際、Terminalから実行すること（Thonyで停止した際カメラプロセスが停止できないため）
+#  Raspberry Piで実行する際、Terminalから実行すること（Thonyで停止した際カメラプロセスが停止できないため）
 # 
-# v1.0.x
-#  scd40よりセンサー値取得、カメラ映像送信（StreamCamera.py）、混雑度受信、データベースへ送信、画面描画、閾値警告（画面・音声）
+#  v1.0.x
+#    scd40よりセンサー値取得、カメラ映像送信（StreamCamera.py）、混雑度受信、データベースへ送信、画面描画、閾値警告（画面・音声）
+#
+#  v1.1.0
+#    ディレクトリ構成の大規模変化・python -m cocovision / congestionで実行可能（実行場所は親ファルダから） 
 
 __author__ = "REM-Project <remprojectpbl@gmail.com>"
 __status__ = "COCOVision"
-__version__ = "1.0.14 - elden ring"
-__date__    = "2022/2/25"
+__version__ = "1.1.0"
+__date__    = "2022/3/1"
 
 
 
@@ -29,12 +32,16 @@ import socket
 import pygame
 from mutagen.mp3 import MP3 as mp3
 from datetime import timedelta
-import StreamCamera
 from multiprocessing import Process
+
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from camera import StreamCamera
 
 
 def cnf():
     global BASE_PORT,START_INTERVAL_TIME,SEND_INTERVAL,SOUND_INTERVAL,CO2_LEVEL,TEMP_LEVEL,HUMI_LEVEL,CONG_LEVEL,IS_SHOW_DISPLAY
+    
     ####調整項目####
 
 
@@ -80,7 +87,7 @@ def main():
 
     #設定情報読み込み（失敗時強制終了）
     try:
-        with open("COCOVision.config", "r",encoding="utf-8") as f:
+        with open("config/COCOVision.config", "r",encoding="utf-8") as f:
             config=f.read().splitlines()
         ROOM_NAME,NUM_CAMERA,HOST=config
     except IOError as e:

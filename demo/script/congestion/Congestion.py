@@ -2,7 +2,7 @@
 # demo/script内にOpenPoseIpCamToJson.shと一緒に配置
 
 #ライブラリ
-import shutil
+# import shutil
 import sys
 import subprocess
 import os
@@ -10,8 +10,10 @@ import signal
 
 #import psutil
 
-#ローカル（同階層）
-import GetDevicesInfo as DevicesInfo
+#ローカル
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from sub import GetDevicesInfo as DevicesInfo
+
 #メインストリーム
 def main():
     #初期定義
@@ -105,13 +107,13 @@ def exec_openpose(camera_addr,out_dir):
     # if os.path.exists(out_dir):
     #     shutil.rmtree(out_dir)
     # 書き出し先のフォルダを生成
-    os.makedirs(out_dir, exist_ok=True)
+    # os.makedirs(out_dir, exist_ok=True)
 
-    cmd=["bash","../script/OpenPoseIpCamToJson.sh",camera_addr,out_dir]
 
-    print(os.getcwd())
+    cmd=["bash","../script/congestion/sub/OpenPoseIpCamToJson.sh",camera_addr,out_dir]
+
     try:
-        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd="../openpose")
+        return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd="../../openpose")
     except Exception as e:
         print("noop")
         print(e)
@@ -120,22 +122,13 @@ def exec_openpose(camera_addr,out_dir):
 #人数取得実行
 def exec_cong_server(device_ip,cong_port,num_camera):
     print("call CongServer.py")
-    cmd=["python3","CongServer.py",device_ip,str(cong_port),str(num_camera)]
-    return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT)
+    cmd=["python3","../script/congestion/sub/CongServer.py",device_ip,str(cong_port),str(num_camera)]
+    return subprocess.Popen(args=cmd,stderr=subprocess.STDOUT,cwd="../../openpose")
 
-
-
-# 子プロセス終了
 # 子プロセス終了
 def kill_popen(popen):
     print("call kill_popen")
-    # for p in popen:
-    #     print(p)
-    #     process = psutil.Process(p.pid)
-    #     process.terminate ()
-    #     #process.kill()
     for p in popen:
-       #p.kill()
        p.terminate()
 
 # finallyを実行させるための形式上の宣言

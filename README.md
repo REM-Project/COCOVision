@@ -10,7 +10,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 # 実行
 * ## 処理用PC
-  ダウンロード・解凍した後、[SetupUseIpAddr.py](demo/script/SetupUseIpAddr.py)を実行し使用するIPアドレスを設定して下さい。
+  ダウンロード・解凍した後、[SetupUseIpAddr.py](demo/script/congestion/SetupUseIpAddr.py)を実行し使用するIPアドレスを設定して下さい。
   その後[cocovision](./)内で `docker compose up -d` を実行します。
 
   [demo](demo)には本来Windows版のOpenPoseを配置しています。
@@ -19,7 +19,11 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
   また、ダウンロードしdemoに配置した後に~/cocovision/demo/openpose/models内のbatchファイルを実行してmodelのダウンロードを行うことも忘れないで下さい。
 
-  その後[demo/script/Congestion.py](demo/script/Congestion.py) を実行して下さい。（カメラ映像から人数解析・室内端末に送信）
+  その後[Congestion.py](demo/script/congestion/Congestion.py) を実行して下さい。（カメラ映像から人数解析・室内端末に送信）
+
+  `python -m congestion` でも実行可能です
+
+  実行に必要なライブラリは[requirements.txt](demo/script/congestion/requirements.txt)からpipして下さい。
 
 
 * ## 室内端末
@@ -49,7 +53,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 * webカメラ（任意数 - 2/7 1台の動作のみ確認）
 
 # Q&A
-1. ### [demo/script/Congestion.py](demo/script/Congestion.py)を実行しても、[CongServer.py](demo/script/CongServer.py)は動くが[OpenPoseIpCamToJson.py](demo/script/OpenPoseIpCamToJson.sh)(OpenPose)が動かない。
+1. ### [demo/script/Congestion.py](demo/script/congestion/Congestion.py)を実行しても、[CongServer.py](demo/script/congestion/CongServer.py)は動くが[OpenPoseIpCamToJson.py](demo/script/congestion/OpenPoseIpCamToJson.sh)(OpenPose)が動かない。
     <p>A. WSLのデフォルトのディストリビューションを確認して下さい</p>
     <p>dockerのものになっているとbashが使えなくなります</p>
     <p>対処法は下記の通りです</p>
@@ -67,7 +71,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
     * データベースに計測デバイスのIPアドレスは登録されていますか
     * 処理用PCと同じネットワークに属していますか
     * データベースとOpenPoseを別々のPCで実行していませんか
-    * 室内端末で登録したデータベースのIPアドレスと[SetupUseIpAddr.py](demo/script/SetupUseIpAddr.py)で設定したIPアドレスは同一ですか
+    * 室内端末で登録したデータベースのIPアドレスと[SetupUseIpAddr.py](demo/script/congestion/SetupUseIpAddr.py)で設定したIPアドレスは同一ですか
     
 3. ### Raspberry Piから音が出ない
     <p>A. 音声の出力先を確認・変更して下さい</p>

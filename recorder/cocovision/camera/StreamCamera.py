@@ -23,7 +23,7 @@ def main():
     popen=[]
     
     #COCOVision.configから読み込み
-    with open("COCOVision.config","r",encoding="utf-8") as f:
+    with open("../config/COCOVision.config","r",encoding="utf-8") as f:
         config = [s.strip() for s in f.readlines()]
     
     #カメラ台数取得

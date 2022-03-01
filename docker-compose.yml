@@ -56,7 +56,7 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=th1117
-    links:
+    depends_on:
       - mysql
     ports:
       - 8080:80

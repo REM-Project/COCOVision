@@ -62,7 +62,7 @@ def setupCnf(values,dbip,cursor):
     path = os.getcwd()
     room_name=values[0]
     camera=values[1]
-    with open(path+"/COCOVision.config", "w") as f:
+    with open(path+"/config/COCOVision.config", "w") as f:
         f.write(room_name+"\n"+str(camera)+"\n"+dbip)
 
 

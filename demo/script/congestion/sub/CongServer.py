@@ -7,21 +7,14 @@ import sys
 import time
 import os
 import socket
+from pathlib import Path
 
-#ローカル（同階層）
-import ip_addr_config
- 
+#ローカル
+sys.path.append(os.path.abspath(Path(os.path.dirname(__file__)).resolve().parent))#親ディレクトリをpathに追加
+from config import ip_addr_config
+
 
 def main(device_ip,port,num_camera):
-    # このファイルのディレクトリpath
-    path=os.path.dirname(__file__)
-
-	# python3.9以前用に相対パスから絶対パスに変換
-    path=os.path.abspath(path)
-
-    # カレントディレクトリをこのファイルがあるディレクトリに変更
-    os.chdir(path)
-    
     #読み込み
     host = ip_addr_config.IP_ADDR
     
