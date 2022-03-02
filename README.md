@@ -42,7 +42,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 ## OS・ドライバー
 * Windows11
 * NVIDIA Studio Driver 511.09
-* Docker Desktop 4.4.4
+* Docker Desktop 4.5.1
 * WSL2(Ubuntu20.04)
 
 ## ハードウェア
