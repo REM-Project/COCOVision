@@ -3,7 +3,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 [recorder](recorder/)内に配置されているのが室内端末側のコードで、その他は処理用PC側のコードです。
 
-最新動作確認版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)です。
+安定版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)です。
 
 又、明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
 
@@ -21,7 +21,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
   その後[Congestion.py](demo/script/congestion/Congestion.py) を実行して下さい。（カメラ映像から人数解析・室内端末に送信）
 
-  `python -m congestion` でも実行可能です
+  `python -m congestion` でも実行可能です。
 
   実行に必要なライブラリは[requirements.txt](demo/script/congestion/requirements.txt)からpipして下さい。
 
@@ -31,6 +31,8 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
   ファルダ内の[COCOVision.py](recorder/cocovision/COCOVision.py)を実行することで処理が開始されます。
  
   初回実行時は実行前に[COCOVision-setup.py](recorder/cocovision/COCOVision-setup.py)を実行し、部屋情報設定を行ってから[COCOVision.py](recorder/cocovision/COCOVision.py)を実行してください。
+
+  `python -m cocovision` でも実行可能です。
  
   [COCOVision-configtable.py](recorder/cocovision/cocoVision-configtable.py)を実行するとGUIでデータベース内の部屋情報を新規登録・削除できます。
  
@@ -40,7 +42,9 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 ## OS・ドライバー
 * Windows11
 * NVIDIA Studio Driver 511.09
-* Docker Desktop 4.4.4
+* cuda11.1
+* cudnn8
+* Docker Desktop 4.5.1
 * WSL2(Ubuntu20.04)
 
 ## ハードウェア
@@ -107,6 +111,7 @@ Ubuntu上で実行した際、cudaのバージョンが合わずOpenPoseが機�
 <br>
 <br>
 
-# おまけ
-確実に返答する保証はできませんが、出来る限り質問には答えます。（質問事項だけ送って頂いて結構です）
+# 質問について
+確実に返答する保証はできませんが、出来る限り質問には答えたいと思います。
+issueに書いて頂いても大丈夫です。
 * remprojectpbl@gmail.com
