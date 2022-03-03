@@ -1,10 +1,12 @@
-/demo/openpose
-/demo/output_json
+/congestion/openpose
+/congestion/output_json
 /openpose/openpose
 /openpose/inputdata
 /mysql/db
 /releases
 
+
+/congestion/script/congestion/config/
 /recorder/cocovision/config/COCOVision.config
 
 /temp
