@@ -10,9 +10,10 @@ services:
   #   volumes:
   #     #ディレクトリリンク
   #     - ./openpose/script:/usr/local/script/
+  #     - ./openpose/output_json:/usr/local/output_json/
   #   ports: #ホスト側ポート：インスタンス側ポート
   #     - 7900:7900
-  #     - 9001:9001
+  #     - 7901:7901
   #   stdin_open: true
 
   php:
@@ -44,7 +45,6 @@ services:
       #ディレクトリリンク
       - ./mysql/db:/var/lib/mysql
       #- mysql_data:/var/lib/mysql
-      #- ./mysql./init/:/docker-entrypoint-initdb.d/
     environment:
       - "TZ=Asia/Tokyo"
 
