@@ -1,6 +1,6 @@
 #!/bin/sh
 #cd ../../openpose/
-while true
+while true :
 do
     pwd
     echo "exec openpose $1"
