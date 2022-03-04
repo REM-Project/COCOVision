@@ -42,7 +42,7 @@ pianohat==0.1.0
 picamera==1.13
 piglow==1.2.5
 pigpio==1.78
-Pillow==5.4.1
+Pillow==9.0.0
 pycairo==1.16.2
 pycrypto==2.6.1
 pygame==1.9.4.post1
