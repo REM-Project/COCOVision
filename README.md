@@ -3,7 +3,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 [recorder](recorder/)内に配置されているのが室内端末側のコードで、その他は処理用PC側のコードです。
 
-安定版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)です。
+安定版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)、最新版が[v1.1.0](https://github.com/REM-Project/COCOVision/releases/v1.1.0)です。
 
 又、明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
 
