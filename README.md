@@ -3,7 +3,7 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 
 [recorder](recorder/)内に配置されているのが室内端末側のコードで、その他は処理用PC側のコードです。
 
-安定版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)です。
+安定版は[v1.0.14](https://github.com/REM-Project/COCOVision/releases/v1.0.14)、最新版が[v1.1.0](https://github.com/REM-Project/COCOVision/releases/v1.1.0)です。
 
 又、明記されていない限り、このREADME.mdに記載された日付は2022年のものです。
 
@@ -94,6 +94,13 @@ COCOVisionは室内の環境値を測定・警告し、新型コロナウイル�
 <br>
 <br>
 <br>
+
+## IPカメラの利用にあたって
+改善案としてIPカメラの利用を挙げていますが、IPカメラを利用する場合、データベース、処理用PC側の処理（jsonファイルの書き出し・読み取り・合算）を大きく改修する必要があります。
+
+別途camera_addrテーブル（room_id,ip_addr,num_camera）など用意しroom_infoと紐づけると綺麗に作れると思います。（この場合room_infoのnum_cameraを削除）
+
+データベースから取得する際のコードはGetDeviceInfo.pyに追加する形でも良いと思いますし、新しく実装するのも良いと思います。
 
 ## ubuntu（Linux）版について
 Dockerを利用しているため、Linuxでも同じように実行できますが、

@@ -42,7 +42,7 @@ pianohat==0.1.0
 picamera==1.13
 piglow==1.2.5
 pigpio==1.78
-Pillow==5.4.1
+Pillow==9.0.0
 pycairo==1.16.2
 pycrypto==2.6.1
 pygame==1.9.4.post1
@@ -70,5 +70,5 @@ spidev==3.5
 touchphat==0.0.1
 twython==3.7.0
 unicornhathd==0.0.4
-urllib3==1.24.1
+urllib3==1.26.5
 Werkzeug==0.14.1
