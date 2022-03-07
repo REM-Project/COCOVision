@@ -1,0 +1,8 @@
+imagesフォルダ → datepickerの見た目を変える画像が入っている。select.phpで使用。
+index.css → index.phpで使用
+roomEn.css → roomEn.phpで使用
+select-pc.css → select.phpをPCで開かれた場合に使用。
+select-sp.css → select.phpをスマホ等で開かれた場合に使用。
+past.css → past.phpで使用
+jquery-ui.css → datepickerを利用する際に必要。select.phpで使用。
+jquery-ui-timepicker-addon.min.css → datetimepickerを利用する際に必要。select.phpで使用

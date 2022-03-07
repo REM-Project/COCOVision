@@ -1,0 +1,5 @@
+index.php → メインページ
+roomEn.php → 部屋環境確認ページ
+select.php → 履歴選択ページ
+past.php → 履歴表示ページ
+csvdownload.php → csvダウンロードを行う。select.phpでcsv出力を押した際に動作する。

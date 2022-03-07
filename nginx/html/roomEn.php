@@ -1,25 +1,23 @@
+<!--  部屋環境確認ページ
+読み込んでいるファイル
+ javascript : clock.js
+ css : roomEn.css
+ php : DBconnect.php
+-->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
 	<title>メニュー画面</title>
 	<link href="css/roomEn.css" rel="stylesheet" type="text/css" media="all">
-	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
-	<script src="javascript/clock.js"></script>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"> <!-- スマホとPCからの接続に合わせたレスポンシブ設定 -->
+	<script src="javascript/clock.js"></script> <!-- 時計の読み込み -->
 </head>
 <body>
 <?php
-	try{
-    	$pdo = new PDO( //DB接続
-        	'mysql:host=mysql;dbname=cocovision;charset=utf8',//接続先IPアドレス、データベース名、文字コード
-        	'webuser', //ユーザー名
-        	'th1117' //ユーザーのパスワード
-    	);
-    	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    	$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-	}catch(PDOException $Exception){
-    	die('接続エラー：' .$Exception->getMessage());
-	}
+	require("php/DBconnect.php"); //データベース接続関数の読み込み
+	$pdo = dbconnect(); //データベース接続
 	$room = $_POST['room']; //mainページで選択した部屋名取得
 	if($room != "-"){ //部屋が選択された場合
 		try{
@@ -51,11 +49,10 @@
 	}
 $pdo = null; //DB切断
 ?>
-	<span id="realtime"></span>
-	<div class="box" id="sensorValue">
-	</div>
-	<form action="index.php" method="POST">
-		<button type="submit" accesskey="s" tabindex="1" id="backbtn">戻る</button>
+	<span id="realtime"></span> <!-- 時計の表示場所 -->
+	<div class="box" id="sensorValue"></div> <!-- 測定値の周りの枠線の表示場所 -->
+	<form action="index.php" method="POST"> <!-- 戻るボタンを押すとメインページに遷移 -->
+		<button type="submit" accesskey="s" tabindex="1" id="backbtn">戻る</button> <!-- 戻るボタン生成 -->
 	</form>
 	<script>
 		var co2 = '<?php echo $sensorvalues['co2']; ?>'; //phpからco2濃度を取得
@@ -66,9 +63,7 @@ $pdo = null; //DB切断
 		var refreshtime = new Date('<?php echo $rec_time; ?>'); //最後にデータベースに追加された時間をphpより取得
 		refreshtime.setMinutes(refreshtime.getMinutes() + 2); //refreshtimeに2分追加
 		refreshtime.setSeconds(refreshtime.getSeconds() + 3); //refreshtimeに3秒追加(毎回処理が2分ぴったりで終わらない可能性を考慮して余裕をもって3秒追加している)
-		/*var oldtime = new Date(); 
-		oldtime.setMinutes(oldtime.getMinutes() + 2);
-		oldtime.setSeconds(oldtime.getSeconds() + 7);*/
+
 		var br = [];
 		var p = [];
 		for(var i = 0; i < 5; i++){
@@ -77,11 +72,11 @@ $pdo = null; //DB切断
 		}
 		var co2text = document.createTextNode('CO2: ' + Math.round(co2) + 'ppm'); //HTMLに追加したい文字はcreateTextNodeで作成する必要あり。
 		var temptext = document.createTextNode('温度: ' + Math.round(temp * 10) / 10 + "℃");
-		var humitext = document.createTextNode('湿度: ' +Math.round(humi * 10 ) / 10 + "%");
-		if(cong != -1){ //congが-1のときは[計測なし]を表示するため%を表示しない
-			var congtext = document.createTextNode('混雑度: '+Math.round(cong * 10 ) / 10 + "%");
-		} else {//congが-1でないときは以下の処理を行う
-			var congtext = document.createTextNode('混雑度: 計測なし');
+		var humitext = document.createTextNode('湿度: ' + Math.round(humi * 10) / 10 + "%");
+		if(cong == ""){
+			var congtext = document.createTextNode('混雑度: 計測無し');
+		} else {
+			var congtext = document.createTextNode('混雑度: ' + Math.round(cong * 10) / 10 + '%');
 		}
 		var roomtext = document.createTextNode(roomname);
 		var valueDisplay = document.getElementById("sensorValue")

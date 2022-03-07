@@ -1,0 +1,7 @@
+Chart.min.js → グラフを描く際に利用。past.phpで使用。
+clock.js → 時計表示。index.php、roomEn.php、select.php、past.phpで使用。
+datepicker-ja.js → datepickerを日本語にする。select.phpで使用。
+jquery-3.6.0.min.js → datepickerを使う際に必要。select.phpで使用。
+jquery-ui.min.js → datepickerを使う際に必要。select.phpで使用。
+jquery-ji-timepicker-addon.js → datetimepickerを使う際に必要。select.phpで使用。
+jquery-ui-timepicker-ja.js → datetimepickerを日本語にする。select.phpで使用。
